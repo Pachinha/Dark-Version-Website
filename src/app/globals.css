@@ -1,26 +1,277 @@
 @import "tailwindcss";
 
+@theme {
+  --color-parchment: #f6f2ec;
+  --color-ink: #262019;
+  --color-terracotta: #bf5b2d;
+  --color-terracotta-light: #e2a276;
+  --color-cream: #f2ece2;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-archivo: "Archivo", Arial, Helvetica, sans-serif;
+  --font-archivo-expanded: "Archivo Expanded", system-ui, sans-serif;
+  --font-great-vibes: "Great Vibes", cursive;
+  --font-bree-serif: "Bree Serif", serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #1a1108;
+  color: #262019;
+  font-family: "Archivo", Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scroll animations ── */
+.anim-fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.anim-fade-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Card hover effects ── */
+.card-hover {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 36px rgba(38,32,25,0.11);
+}
+
+.brand-card-hover {
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.brand-card-hover:hover {
+  background: #fff !important;
+  border-color: #bf5b2d !important;
+}
+
+.outlet-card {
+  transition: opacity 0.2s ease;
+}
+.outlet-card:hover {
+  opacity: 0.88;
+}
+
+.product-img-zoom img {
+  transition: transform 0.45s ease;
+}
+.product-img-zoom:hover img {
+  transform: scale(1.04);
+}
+
+/* ── Navbar links — hero (branco, sobre imagem escura) ── */
+.nav-link-hero {
+  position: relative;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  padding-bottom: 3px;
+  transition: color 0.2s ease;
+}
+
+.nav-link-hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: #e2a276;
+  transition: width 0.25s ease;
+}
+
+.nav-link-hero:hover {
+  color: #ffffff;
+}
+
+.nav-link-hero:hover::after {
+  width: 100%;
+}
+
+.nav-link-hero-outlet {
+  position: relative;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e2a276;
+  text-decoration: none;
+  padding-bottom: 3px;
+  transition: opacity 0.2s ease;
+}
+
+.nav-link-hero-outlet::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: #e2a276;
+  transition: width 0.25s ease;
+}
+
+.nav-link-hero-outlet:hover {
+  opacity: 0.75;
+}
+
+.nav-link-hero-outlet:hover::after {
+  width: 100%;
+}
+
+/* ── Navbar links ── */
+.nav-link {
+  position: relative;
+  font-size: 15px;
+  font-weight: 500;
+  color: #262019;
+  text-decoration: none;
+  padding-bottom: 3px;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: #bf5b2d;
+  transition: width 0.25s ease;
+}
+
+.nav-link:hover {
+  color: #bf5b2d;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link-outlet {
+  position: relative;
+  font-size: 15px;
+  font-weight: 600;
+  color: #bf5b2d;
+  text-decoration: none;
+  padding-bottom: 3px;
+  transition: opacity 0.2s ease;
+}
+
+.nav-link-outlet::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: #bf5b2d;
+  transition: width 0.25s ease;
+}
+
+.nav-link-outlet:hover {
+  opacity: 0.75;
+}
+
+.nav-link-outlet:hover::after {
+  width: 100%;
+}
+
+/* ── Brand ticker ── */
+@keyframes brand-ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+.ticker-set {
+  display: flex;
+  flex-shrink: 0;
+  animation: brand-ticker 36s linear infinite;
+  will-change: transform;
+}
+
+/* ── "Já é cliente" link ── */
+.cliente-link {
+  transition: opacity 0.2s ease;
+}
+.cliente-link:hover {
+  opacity: 0.80;
+}
+
+/* ── Button hover effects ── */
+.btn-primary {
+  transition: background 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+}
+.btn-primary:hover {
+  background: #a84e26 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(191,91,45,0.45);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+}
+.btn-outline:hover {
+  background: rgba(255,255,255,0.12) !important;
+  border-color: rgba(255,255,255,0.70) !important;
+  transform: translateY(-2px);
+}
+.btn-outline:active {
+  transform: translateY(0);
+}
+
+.btn-glass {
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+}
+.btn-glass:hover {
+  background: rgba(242,236,226,0.18) !important;
+  border-color: rgba(242,236,226,0.35) !important;
+  transform: translateY(-2px);
+}
+.btn-glass:active {
+  transform: translateY(0);
+}
+
+.btn-dark {
+  transition: background 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+}
+.btn-dark:hover {
+  background: #3d2a18 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(38,32,25,0.35);
+}
+.btn-dark:active {
+  transform: translateY(0);
+}
+
+/* ── Language switcher pills ── */
+.lang-pill {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.lang-pill:hover {
+  color: rgba(255,255,255,0.85);
+}
+.lang-pill-active {
+  background: rgba(255,255,255,0.90) !important;
+  color: #262019 !important;
 }

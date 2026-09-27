@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:claude.ai)",
+      "Skill(update-config)",
+      "Bash(claude mcp *)",
+      "Bash(npm --version)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git)",
+      "Read(//c/Users/josep/Desktop/**)",
+      "Bash(npx create-next-app@latest pachinha-temp --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git)",
+      "PowerShell(Move-Item *)",
+      "Bash(npm run *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Copy-Item *)",
+      "WebSearch",
+      "WebFetch(domain:www.bellfires.com)",
+      "WebFetch(domain:www.barbas.pt)",
+      "WebFetch(domain:www.solzaima.pt)",
+      "WebFetch(domain:www.mcz.it)",
+      "WebFetch(domain:www.ravelli.it)",
+      "WebFetch(domain:barbasbellfires.com)",
+      "WebFetch(domain:www.lanordica-extraflame.com)",
+      "WebFetch(domain:www.stuv.be)",
+      "WebFetch(domain:www.edilkamin.com)",
+      "WebFetch(domain:barbas.com)",
+      "WebFetch(domain:www.stuv.com)",
+      "WebFetch(domain:www.dru-fires.com)",
+      "WebFetch(domain:barbas.pt)",
+      "Bash(node_modules/.bin/next build *)"
+    ]
+  }
+}
