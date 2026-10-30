@@ -3,22 +3,9 @@ import CategoryLayout from "@/components/CategoryLayout";
 export const metadata = { title: "Fogões — Lareiras Pachinha" };
 
 const products = [
-  {
-    name: "La Nordica — Suprema",
-    desc: "Fogão a lenha com forno integrado. 12 kW de potência. Aquece e cozinha ao mesmo tempo.",
-    img: "/images/fogao.jpg",
-    badge: "Com forno",
-  },
-  {
-    name: "Edilkamin — Cucina 80",
-    desc: "Fogão de cozinha a pellets com placa de indução. Autonomia de 24h com depósito cheio.",
-    img: "/images/fogao.jpg",
-  },
-  {
-    name: "MCZ — Philo Air",
-    desc: "Fogão a pellets com design moderno. Controlo por app, ventilação natural silenciosa.",
-    img: "/images/fogao.jpg",
-  },
+  { brand: "Godin", name: "Fogão de cozinha a lenha", fuel: "Lenha", img: "/images/fogao.jpg", badge: "Importador" },
+  { brand: "La Nordica", name: "Fogão de cozinha a lenha", fuel: "Lenha", img: "/images/fogao.jpg" },
+  { brand: "Bronpi", name: "Fogão de cozinha a lenha", fuel: "Lenha", img: "/images/fogao.jpg" },
 ];
 
 export default function FogoesPage() {

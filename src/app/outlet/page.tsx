@@ -3,24 +3,9 @@ import CategoryLayout from "@/components/CategoryLayout";
 export const metadata = { title: "Outlet — Lareiras Pachinha" };
 
 const products = [
-  {
-    name: "Ravelli R 60 — Exposição",
-    desc: "Salamandra a pellets do nosso showroom. Em perfeito estado. Stock único, preço reduzido.",
-    img: "/images/salamandra.jpg",
-    badge: "−30%",
-  },
-  {
-    name: "Barbas Vitro 70 — Último",
-    desc: "Recuperador de calor último do stock. Rendimento 78%, 11 kW. Inclui kit de instalação.",
-    img: "/images/recuperador.jpg",
-    badge: "Último",
-  },
-  {
-    name: "Bellfires Room — Exposição",
-    desc: "Lareira a gás de chão, modelo de exposição. Ligeiras marcas de uso, funcionamento impecável.",
-    img: "/images/lareira.jpg",
-    badge: "−20%",
-  },
+  { brand: "MCZ", name: "Salamandra a pellets — exposição", fuel: "Pellets", img: "/images/salamandra.jpg", badge: "−30%" },
+  { brand: "Solzaima", name: "Recuperador a lenha — último", fuel: "Lenha", img: "/images/recuperador.jpg", badge: "Último" },
+  { brand: "Bellfires", name: "Lareira a gás — exposição", fuel: "Gás", img: "/images/lareira.jpg", badge: "−20%" },
 ];
 
 export default function OutletPage() {

@@ -3,22 +3,9 @@ import CategoryLayout from "@/components/CategoryLayout";
 export const metadata = { title: "Churrasqueiras — Lareiras Pachinha" };
 
 const products = [
-  {
-    name: "Camin — Brasa Inox 90",
-    desc: "Churrasqueira a carvão em inox 304. Grelha regulável em altura. Design português, feita para durar.",
-    img: "/images/churrasqueira.jpg",
-    badge: "Nacional",
-  },
-  {
-    name: "Camin — Stone Garden",
-    desc: "Churrasqueira em pedra natural com estrutura de aço. Integração perfeita em terraço ou jardim.",
-    img: "/images/churrasqueira.jpg",
-  },
-  {
-    name: "Barbas — Outdoor Maxi",
-    desc: "Churrasqueira a lenha com forno de pedra incorporado. Para quem quer o máximo no exterior.",
-    img: "/images/churrasqueira.jpg",
-  },
+  { brand: "Fogo Montanha", name: "Churrasqueira de alvenaria", fuel: "Lenha / carvão", img: "/images/churrasqueira.jpg" },
+  { brand: "Bronpi", name: "Churrasqueira pré-fabricada", fuel: "Lenha / carvão", img: "/images/churrasqueira.jpg" },
+  { brand: "Cozingas", name: "Grelhador a gás", fuel: "Gás", img: "/images/churrasqueira.jpg" },
 ];
 
 export default function ChurrasqueirasPage() {

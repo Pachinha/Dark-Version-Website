@@ -3,22 +3,12 @@ import CategoryLayout from "@/components/CategoryLayout";
 export const metadata = { title: "Lareiras — Lareiras Pachinha" };
 
 const products = [
-  {
-    name: "Bellfires — Bay Angular",
-    desc: "Chama realista a gás natural ou GPL. Design minimalista holandês. Encaixe em ângulo para canto de sala.",
-    img: "/images/lareira.jpg",
-    badge: "Mais vendido",
-  },
-  {
-    name: "Stuv 21 — Dupla Face",
-    desc: "Lareira a lenha de dupla face, visível dos dois lados da divisão. Vidro resistente a 800ºC.",
-    img: "/images/lareira.jpg",
-  },
-  {
-    name: "DRU — Cosmo 100 RCH",
-    desc: "Lareira a gás embutida de alta eficiência. Controlo remoto incluído. Acende em segundos.",
-    img: "/images/lareira.jpg",
-  },
+  { brand: "Bellfires", name: "Lareira a gás", fuel: "Gás", img: "/images/lareira.jpg", badge: "Mais vendido" },
+  { brand: "Stûv", name: "Lareira dupla face", fuel: "Lenha", img: "/images/lareira.jpg" },
+  { brand: "Cheminées Philippe", name: "Lareira metálica", fuel: "Lenha", img: "/images/lareira.jpg" },
+  { brand: "Focus", name: "Lareira suspensa", fuel: "Lenha", img: "/images/lareira.jpg" },
+  { brand: "DRU", name: "Lareira elétrica", fuel: "Elétrica", img: "/images/lareira.jpg" },
+  { brand: "M Design", name: "Lareira a bioetanol", fuel: "Bioetanol", img: "/images/lareira.jpg" },
 ];
 
 export default function LareirasPage() {

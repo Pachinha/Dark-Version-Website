@@ -3,22 +3,12 @@ import CategoryLayout from "@/components/CategoryLayout";
 export const metadata = { title: "Salamandras — Lareiras Pachinha" };
 
 const products = [
-  {
-    name: "Ravelli — R 80 V",
-    desc: "Termostato digital, ventoinhas silenciosas. Aquece até 120 m². Controlo por WiFi disponível.",
-    img: "/images/salamandra.jpg",
-    badge: "WiFi",
-  },
-  {
-    name: "MCZ — Club Air 14 UP!",
-    desc: "Salamandra a pellets com distribuição de ar a quente. Programação semanal e controlo por app.",
-    img: "/images/salamandra.jpg",
-  },
-  {
-    name: "La Nordica — Isetta",
-    desc: "Salamandra a lenha compacta, ideal para pequenos espaços. Design retro italiano. 7 kW.",
-    img: "/images/salamandra.jpg",
-  },
+  { brand: "Godin", name: "Salamandra em ferro fundido", fuel: "Lenha", img: "/images/salamandra.jpg", badge: "Importador" },
+  { brand: "MCZ", name: "Salamandra a pellets", fuel: "Pellets", img: "/images/salamandra.jpg" },
+  { brand: "Jøtul", name: "Salamandra a lenha", fuel: "Lenha", img: "/images/salamandra.jpg" },
+  { brand: "Ecoforest", name: "Salamandra a pellets", fuel: "Pellets", img: "/images/salamandra.jpg" },
+  { brand: "Bronpi", name: "Salamandra a lenha", fuel: "Lenha", img: "/images/salamandra.jpg" },
+  { brand: "Evacalor", name: "Salamandra a pellets", fuel: "Pellets", img: "/images/salamandra.jpg" },
 ];
 
 export default function SalamandrásPage() {

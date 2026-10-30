@@ -6,21 +6,21 @@ const testimonials = [
     name: "Ana Rodrigues",
     location: "Viana do Castelo",
     avatar: "https://ui-avatars.com/api/?name=Ana+Rodrigues&background=bf5b2d&color=fff&size=80",
-    product: "Lareira a gás Bellfires",
+    product: "Lareira a gás",
   },
   {
     quote: "Compramos um recuperador há três anos e ainda parece novo. A assistência pós-venda é muito boa — qualquer dúvida, estão sempre disponíveis.",
     name: "João Ferreira",
     location: "Monção",
     avatar: "https://ui-avatars.com/api/?name=Joao+Ferreira&background=262019&color=f6f2ec&size=80",
-    product: "Recuperador Barbas Vitro 90",
+    product: "Recuperador a lenha",
   },
   {
     quote: "O showroom tem uma variedade enorme. Fomos sem ideia do que queríamos e saímos com tudo decidido. A salamandra de pellets já passou dois invernos sem uma avaria.",
     name: "Maria José Silva",
     location: "Valença",
     avatar: "https://ui-avatars.com/api/?name=Maria+Silva&background=e2a276&color=262019&size=80",
-    product: "Salamandra Ravelli R 80 V",
+    product: "Salamandra a pellets",
   },
 ];
 

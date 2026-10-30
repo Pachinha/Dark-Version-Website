@@ -1,10 +1,12 @@
+import Link from "next/link";
 import Navbar from "./Navbar";
 import AnimateIn from "./AnimateIn";
 import Footer from "./Footer";
 
 interface Product {
+  brand: string;
   name: string;
-  desc: string;
+  fuel: string;
   img: string;
   badge?: string;
 }
@@ -67,26 +69,26 @@ export default function CategoryLayout({ category, title, subtitle, heroImg, pro
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px" }}>
             {products.map((product, i) => (
-              <AnimateIn key={product.name} delay={i * 100}>
+              <AnimateIn key={`${product.brand}-${product.name}`} delay={i * 100}>
                 <div
                   className="card-hover"
                   style={{ background: "#2a1a0c", borderRadius: "16px", overflow: "hidden", display: "flex", flexDirection: "column" }}
                 >
                   <div className="product-img-zoom" style={{ position: "relative", height: "240px", background: "#3d2a18", flexShrink: 0, overflow: "hidden" }}>
-                    <img src={product.img} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
+                    <img src={product.img} alt={`${product.brand} ${product.name}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
                     {product.badge && (
                       <span style={{ position: "absolute", top: "12px", left: "12px", background: "#bf5b2d", color: "#fff", fontSize: "11px", fontWeight: 600, padding: "4px 10px", borderRadius: "999px" }}>
                         {product.badge}
                       </span>
                     )}
                   </div>
-                  <div style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: "8px", flex: 1 }}>
+                  <div style={{ padding: "18px 22px 20px", display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
+                    <div style={{ fontSize: "11.5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#e2a276" }}>{product.brand}</div>
                     <div style={{ fontSize: "17px", fontWeight: 600, color: "#f2ece2" }}>{product.name}</div>
-                    <p style={{ fontSize: "13px", lineHeight: 1.6, color: "rgba(242,236,226,0.52)", margin: "0 0 12px" }}>{product.desc}</p>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
-                      <span style={{ fontSize: "13px", color: "rgba(242,236,226,0.35)" }}>Sob consulta</span>
-                      <a href="#orcamento" className="btn-glass" style={{ background: "rgba(242,236,226,0.10)", color: "#f2ece2", fontSize: "13px", fontWeight: 600, padding: "9px 16px", borderRadius: "999px", textDecoration: "none", border: "1px solid rgba(242,236,226,0.15)", display: "inline-block" }}>
-                        Pedir orçamento
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "14px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "rgba(242,236,226,0.6)", background: "rgba(242,236,226,0.07)", padding: "4px 10px", borderRadius: "999px" }}>{product.fuel}</span>
+                      <a href="#orcamento" style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
+                        Pedir informação →
                       </a>
                     </div>
                   </div>
@@ -108,13 +110,13 @@ export default function CategoryLayout({ category, title, subtitle, heroImg, pro
                   Visita técnica gratuita. Orçamento sem compromisso.
                 </p>
               </div>
-              <a
-                href="tel:+351251652000"
+              <Link
+                href="/pedir-orcamento"
                 className="btn-primary"
                 style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "14px 28px", borderRadius: "999px", textDecoration: "none", whiteSpace: "nowrap", display: "inline-block", flexShrink: 0 }}
               >
-                Falar connosco →
-              </a>
+                Pedir orçamento →
+              </Link>
             </div>
           </AnimateIn>
         </section>

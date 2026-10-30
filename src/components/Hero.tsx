@@ -1,9 +1,10 @@
 import BrandTicker from "./BrandTicker";
+import { FOUNDED, yearsInBusiness } from "@/lib/company";
 
 const stats = [
-  { value: "30+",    label: "anos" },
+  { value: `${yearsInBusiness()}`, label: "anos" },
   { value: "1.000+", label: "instalações" },
-  { value: "12",     label: "marcas" },
+  { value: "25+",    label: "marcas" },
   { value: "PT + ES", label: "línguas" },
 ];
 
@@ -62,7 +63,7 @@ export default function Hero() {
             color: "#e2a276",
           }}
         >
-          Desde 1990 &middot; Portugal e Espanha
+          Desde {FOUNDED} &middot; Do Minho para o país
         </span>
 
         {/* Título */}
@@ -76,7 +77,7 @@ export default function Hero() {
             color: "#ffffff",
           }}
         >
-          Aquecimento com quem sabe, desde 1990.
+          Aquecimento com quem sabe.
         </h1>
 
         {/* Descrição */}
@@ -88,14 +89,15 @@ export default function Hero() {
             margin: 0,
           }}
         >
-          Lareiras, recuperadores e salamandras a lenha, gás, pellets e
-          bioetanol — com aconselhamento técnico e instalação incluída.
+          Lareiras, recuperadores e salamandras a lenha, pellets, gás,
+          elétricas e bioetanol — com aconselhamento técnico e instalação
+          incluída.
         </p>
 
         {/* Botões */}
         <div style={{ display: "flex", gap: "10px" }}>
           <a
-            href="#orcamento"
+            href="/pedir-orcamento"
             className="btn-primary"
             style={{
               background: "#bf5b2d",
@@ -133,7 +135,7 @@ export default function Hero() {
 
         {/* Já é cliente */}
         <a
-          href="/manutencao"
+          href="/apoio-ao-cliente"
           className="cliente-link"
           style={{
             display: "inline-flex",
@@ -152,7 +154,7 @@ export default function Hero() {
           <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.50)" }}>
             Já é cliente?{" "}
             <span style={{ color: "rgba(226,162,118,0.85)", textDecoration: "underline", textUnderlineOffset: "3px" }}>
-              Agende manutenção ou limpeza
+              Peça manutenção ou limpeza
             </span>
           </span>
         </a>

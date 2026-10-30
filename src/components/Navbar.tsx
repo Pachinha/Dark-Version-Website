@@ -1,12 +1,17 @@
 "use client";
 import { useState } from "react";
 
-const navLinks = [
+const productLinks = [
   { label: "Lareiras",       href: "/lareiras" },
   { label: "Recuperadores",  href: "/recuperadores" },
   { label: "Salamandras",    href: "/salamandras" },
   { label: "Fogões",         href: "/fogoes" },
   { label: "Churrasqueiras", href: "/churrasqueiras" },
+];
+const navLinks = [
+  { label: "Sobre nós", href: "/sobre" },
+  { label: "Obras realizadas", href: "/obras" },
+  { label: "Apoio ao cliente", href: "/apoio-ao-cliente" },
 ];
 const languages = ["PT", "ES", "FR", "EN"];
 
@@ -42,6 +47,16 @@ export default function Navbar() {
       </a>
 
       <div style={{ display: "flex", gap: "32px", alignItems: "center" }}>
+        <div className="nav-dropdown">
+          <button type="button" className="nav-link-hero" aria-haspopup="true">
+            Produtos <span aria-hidden style={{ fontSize: "10px", marginLeft: "2px" }}>▾</span>
+          </button>
+          <div className="nav-menu">
+            {productLinks.map((link) => (
+              <a key={link.label} href={link.href}>{link.label}</a>
+            ))}
+          </div>
+        </div>
         {navLinks.map((link) => (
           <a key={link.label} href={link.href} className="nav-link-hero">
             {link.label}
@@ -74,8 +89,12 @@ export default function Navbar() {
           ))}
         </div>
 
+        <a href="/conta" className="nav-link-hero">
+          Área de cliente
+        </a>
+
         <a
-          href="#orcamento"
+          href="/pedir-orcamento"
           className="btn-primary"
           style={{
             background: "#bf5b2d",

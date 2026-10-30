@@ -3,22 +3,12 @@ import CategoryLayout from "@/components/CategoryLayout";
 export const metadata = { title: "Recuperadores — Lareiras Pachinha" };
 
 const products = [
-  {
-    name: "Barbas — Vitro 90",
-    desc: "Rendimento superior a 80%, potência 14 kW. Vidro panorâmico e câmara dupla combustão. Ideal para 80–120 m².",
-    img: "/images/recuperador.jpg",
-    badge: "Mais vendido",
-  },
-  {
-    name: "Edilkamin — Clou 80",
-    desc: "Design italiano contemporâneo, ventilação forçada integrada. Eficiência certificada A+.",
-    img: "/images/recuperador.jpg",
-  },
-  {
-    name: "La Nordica — Extraflame",
-    desc: "Recuperador de grandes dimensões, até 18 kW. Indicado para casas com mais de 150 m².",
-    img: "/images/recuperador.jpg",
-  },
+  { brand: "Cheminées Philippe", name: "Recuperador a lenha", fuel: "Lenha", img: "/images/recuperador.jpg", badge: "Importador" },
+  { brand: "Solzaima", name: "Recuperador a lenha", fuel: "Lenha", img: "/images/recuperador.jpg" },
+  { brand: "Edilkamin", name: "Recuperador a pellets", fuel: "Pellets", img: "/images/recuperador.jpg" },
+  { brand: "Hoxter", name: "Recuperador de porta de subir", fuel: "Lenha", img: "/images/recuperador.jpg" },
+  { brand: "Romotop", name: "Recuperador panorâmico", fuel: "Lenha", img: "/images/recuperador.jpg" },
+  { brand: "Lacunza", name: "Recuperador a lenha", fuel: "Lenha", img: "/images/recuperador.jpg" },
 ];
 
 export default function RecuperadoresPage() {
