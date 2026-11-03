@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { EditResult } from "@/app/actions/admin";
-import { logNotification } from "@/app/actions/admin";
-import { mailtoUrl, whatsappNumber, whatsappUrl, type Notice } from "@/lib/notify";
+import { emailClient, logNotification } from "@/app/actions/admin";
+import { whatsappNumber, whatsappUrl, type Notice } from "@/lib/notify";
 
 type Change = { label: string; from: string; to: string };
 
@@ -54,6 +54,8 @@ export default function ConfirmedForm({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState<Notice | null>(null);
   const [pending, startTransition] = useTransition();
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState("");
 
   useEffect(() => {
     if (formRef.current) initial.current = snapshot(formRef.current, labels);
@@ -103,15 +105,26 @@ export default function ConfirmedForm({
   function finish() {
     notifyRef.current?.close();
     setNotice(null);
+    setSendError("");
     if (redirect.current) router.push(redirect.current);
     else router.refresh();
   }
 
-  function send(channel: "email" | "whatsapp") {
+  // Email: sai automaticamente pelo servidor. Só fecha quando o envio é confirmado.
+  async function sendEmail() {
     if (!notice) return;
-    if (channel === "email") window.location.href = mailtoUrl(notice.email, notice.subject, notice.message);
-    else window.open(whatsappUrl(notice.phone, notice.message), "_blank", "noopener");
-    void logNotification(notice, channel);
+    setSending(true);
+    setSendError("");
+    const result = await emailClient(notice);
+    setSending(false);
+    if (result.error) setSendError(result.error);
+    else finish();
+  }
+
+  function sendWhatsapp() {
+    if (!notice) return;
+    window.open(whatsappUrl(notice.phone, notice.message), "_blank", "noopener");
+    void logNotification(notice, "whatsapp");
     finish();
   }
 
@@ -173,19 +186,20 @@ export default function ConfirmedForm({
               <button type="button" className="btn btn-ghost" onClick={finish}>
                 Não notificar
               </button>
-              <button type="button" className="btn btn-ink" onClick={() => send("email")} disabled={!notice.email}>
-                ✉️ Email
+              <button type="button" className="btn btn-ink" onClick={sendEmail} disabled={!notice.email || sending}>
+                {sending ? "A enviar…" : "✉️ Enviar email"}
               </button>
               <button
                 type="button"
                 className="btn btn-whatsapp"
-                onClick={() => send("whatsapp")}
-                disabled={!canWhatsapp}
+                onClick={sendWhatsapp}
+                disabled={!canWhatsapp || sending}
                 title={canWhatsapp ? undefined : "O cliente não tem telefone registado"}
               >
                 WhatsApp
               </button>
             </div>
+            {sendError && <p className="alert alert-error" role="alert" style={{ marginBottom: 0 }}>{sendError}</p>}
             {!canWhatsapp && (
               <p className="hint" style={{ marginBottom: 0 }}>WhatsApp indisponível: o cliente não tem telefone registado.</p>
             )}

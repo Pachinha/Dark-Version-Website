@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { panel } from "@/lib/panel";
 
@@ -9,7 +9,7 @@ export type Profile = {
   email: string;
   full_name: string;
   phone: string;
-  role: "client" | "tecnico" | "admin";
+  role: "client" | "colaborador" | "tecnico" | "admin";
   privacy_version: string;
   privacy_accepted_at: string;
   marketing_opt_in: boolean;
@@ -37,6 +37,11 @@ export function isStaff(profile: Profile) {
   return profile.role === "admin" || profile.role === "tecnico";
 }
 
+// Quem entra no painel: a equipa e os colaboradores (estes só consultam o que lhes é partilhado).
+export function isPanelMember(profile: Profile) {
+  return isStaff(profile) || profile.role === "colaborador";
+}
+
 export async function requireUser() {
   const current = await getCurrentUser();
   if (!current) redirect("/entrar");
@@ -45,20 +50,29 @@ export async function requireUser() {
   return current;
 }
 
-// Staff panel. Anyone who isn't staff gets a plain 404, as if the panel didn't exist.
+// Staff panel. These guards only run on the secret address (src/app/[painel]/layout.tsx
+// already 404s every other one), so whoever gets here knows it exists: instead of a
+// dead-end 404 they get a page that explains what happened and how to get out.
 // Staff must always be on a session verified with two-step authentication.
-// Signed-out visitors on the exact secret address are sent to the staff login by
-// src/proxy.ts; anywhere else they get a 404, so the address is never revealed.
 export async function requireStaff() {
   const current = await getCurrentUser();
-  if (!current) notFound();
-  if (!isStaff(current.profile)) notFound();
+  if (!current) redirect(panel("/entrar"));
+  if (!isStaff(current.profile)) redirect(panel(current.profile.role === "colaborador" ? "/partilhados" : "/sem-acesso"));
+  if (!current.mfaVerified) redirect(panel("/entrar"));
+  return current;
+}
+
+// Qualquer pessoa do painel, incluindo colaboradores (só leitura dos clientes partilhados).
+export async function requirePanel() {
+  const current = await getCurrentUser();
+  if (!current) redirect(panel("/entrar"));
+  if (!isPanelMember(current.profile)) redirect(panel("/sem-acesso"));
   if (!current.mfaVerified) redirect(panel("/entrar"));
   return current;
 }
 
 export async function requireAdmin() {
   const current = await requireStaff();
-  if (current.profile.role !== "admin") notFound();
+  if (current.profile.role !== "admin") redirect(panel("/sem-acesso?motivo=admin"));
   return current;
 }

@@ -8,6 +8,7 @@ import { isInPortugal } from "@/lib/geo";
 import { PHOTO_BUCKET } from "@/lib/quote-photos";
 import { MAINTENANCE_SERVICE, AVAILABILITY_SLOTS, URGENCY, CONTACT_PREFERENCE } from "@/lib/labels";
 import type { FormState } from "./auth";
+import { isValidPhone } from "@/lib/phone";
 
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 
@@ -32,7 +33,7 @@ export async function createMaintenance(_: FormState, formData: FormData): Promi
   }
 
   const phone = text(formData, "phone");
-  if (formData.has("phone") && phone.replace(/\D/g, "").length < 9) {
+  if (formData.has("phone") && !isValidPhone(phone)) {
     return { error: "Indique um número de telefone válido." };
   }
 
@@ -101,6 +102,7 @@ export async function updateProfile(_: FormState, formData: FormData): Promise<F
   const marketing = formData.get("marketing") === "on";
 
   if (fullName.length < 2) return { error: "Indique o seu nome." };
+  if (phone && !isValidPhone(phone)) return { error: "Telefone inválido — confirme o país e o número." };
 
   const supabase = await createClient();
   const marketingChanged = marketing !== profile.marketing_opt_in;

@@ -8,7 +8,14 @@ import nodemailer, { type Transporter } from "nodemailer";
 //   SMTP_PASS=palavra-passe de aplicação (Conta Google → Segurança → Palavras-passe de apps)
 //   SMTP_FROM="Lareiras Pachinha <o-seu-email@gmail.com>"
 // Sem SMTP configurado, o email não é enviado e o conteúdo aparece no terminal.
-export type Mail = { to: string; subject: string; text: string; html: string; replyTo?: string };
+export type Mail = {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  replyTo?: string;
+  attachments?: { filename: string; content: Buffer; contentType?: string }[];
+};
 
 let transport: Transporter | null = null;
 

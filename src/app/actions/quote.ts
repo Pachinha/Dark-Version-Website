@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { isInPortugal } from "@/lib/geo";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
   AVAILABILITY_SLOTS,
@@ -20,6 +21,7 @@ import { PHOTO_BUCKET } from "@/lib/quote-photos";
 import { FREE_VISIT_MUNICIPALITIES, OTHER_MUNICIPALITY, isInFreeArea } from "@/lib/service-area";
 import { alertStaff } from "@/lib/staff-alert";
 import { sendQuoteConfirmation } from "@/lib/quote-emails";
+import { isValidPhone } from "@/lib/phone";
 
 export type QuoteState = { error?: string; success?: boolean; id?: string; ref?: number; emailSent?: boolean } | undefined;
 
@@ -44,6 +46,9 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
   const otherMunicipality = text(formData, "other_municipality");
   const municipality = chosenMunicipality === OTHER_MUNICIPALITY ? otherMunicipality : chosenMunicipality;
   const address = text(formData, "address");
+  const addressDetails = text(formData, "address_details");
+  const lat = Number(text(formData, "lat"));
+  const lng = Number(text(formData, "lng"));
   const message = text(formData, "message");
   const area = Number(text(formData, "area_m2") || 0);
   const availability = formData.getAll("availability").map(String).filter((s) => AVAILABILITY_SLOTS.includes(s));
@@ -51,7 +56,7 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
 
   if (!(category in QUOTE_PRODUCTS)) return { error: "Escolha o que procura." };
   if (name.length < 2) return { error: "Indique o seu nome." };
-  if (phone.replace(/\D/g, "").length < 9) return { error: "Indique um número de telefone válido." };
+  if (!isValidPhone(phone)) return { error: "Indique um número de telefone válido." };
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "O email não parece válido." };
   if (!(contactPreference in CONTACT_PREFERENCE)) return { error: "Escolha como prefere ser contactado." };
   if (contactPreference === "email" && !email) return { error: "Indique o email para o podermos contactar." };
@@ -59,7 +64,11 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
     return { error: "Escolha o concelho da obra." };
   }
   if (municipality.length < 2) return { error: "Indique o concelho ou localidade da obra." };
-  if (address.length < 5) return { error: "Indique a morada da obra." };
+  // A morada vem da pesquisa de moradas reais (OpenStreetMap), sempre com coordenadas em Portugal.
+  if (address.length < 5 || address.length > 300 || !Number.isFinite(lat) || !Number.isFinite(lng) || !isInPortugal(lat, lng)) {
+    return { error: "Escolha a morada da obra na pesquisa de moradas." };
+  }
+  if (addressDetails.length > 200) return { error: "As indicações da morada são demasiado longas." };
   if (area && (!Number.isInteger(area) || area < 5 || area > 2000)) return { error: "A área deve estar entre 5 e 2000 m²." };
   if (message.length > 4000) return { error: "A descrição é demasiado longa." };
   if (photos.length > MAX_PHOTOS) return { error: `Pode enviar até ${MAX_PHOTOS} fotos.` };
@@ -110,6 +119,11 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
     area_m2: area || null,
     municipality,
     address,
+    address_details: addressDetails,
+    postcode: text(formData, "postcode").slice(0, 20),
+    locality: text(formData, "locality").slice(0, 120),
+    lat,
+    lng,
     outside_area: outsideArea,
     availability,
     contact_preference: contactPreference,

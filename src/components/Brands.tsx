@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import AnimateIn from "./AnimateIn";
-import { IMPORTED_BRANDS, MULTI_BRANDS } from "@/lib/brands";
+import { IMPORTED_BRANDS } from "@/lib/brands";
 
 // The catalogue PDF is dropped into /public by hand; only link it once it is there.
 const hasFile = (href: string | null) => !!href && existsSync(path.join(process.cwd(), "public", href));
@@ -11,14 +11,14 @@ const eyebrow = { fontSize: "11px", fontWeight: 700, letterSpacing: "0.13em", te
 
 export default function Brands() {
   return (
-    <section id="marcas" style={{ background: "#1a1108", padding: "0 52px 80px" }}>
+    <section id="marcas" className="sec" style={{ background: "#1a1108", padding: "0 52px 80px" }}>
       {/* Importador oficial */}
       <AnimateIn style={{ marginBottom: "28px" }}>
-        <span style={eyebrow}>Importador</span>
-        <h2 style={h2}>As marcas que representamos</h2>
+        <span style={eyebrow}>Importador oficial</span>
+        <h2 className="sec-title" style={h2}>As marcas que representamos</h2>
       </AnimateIn>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "18px", marginBottom: "56px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))", gap: "18px" }}>
         {IMPORTED_BRANDS.map((brand, i) => (
           <AnimateIn key={brand.name} delay={i * 100}>
             <div
@@ -56,30 +56,6 @@ export default function Brands() {
         ))}
       </div>
 
-      {/* Multimarcas */}
-      <AnimateIn style={{ marginBottom: "22px" }}>
-        <span style={eyebrow}>Multimarcas</span>
-        <h3 style={{ ...h2, fontSize: "22px" }}>Trabalhamos também com</h3>
-      </AnimateIn>
-      <AnimateIn>
-        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", gap: "10px" }}>
-          {MULTI_BRANDS.map((name) => (
-            <li
-              key={name}
-              style={{
-                background: "#2a1a0c",
-                borderRadius: "999px",
-                padding: "10px 18px",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "rgba(242,236,226,0.85)",
-              }}
-            >
-              {name}
-            </li>
-          ))}
-        </ul>
-      </AnimateIn>
     </section>
   );
 }

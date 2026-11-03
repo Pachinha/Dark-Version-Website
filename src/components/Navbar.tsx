@@ -1,116 +1,87 @@
-"use client";
-import { useState } from "react";
+import Link from "next/link";
+import { CATEGORIES, FUELS, MAIN_FUELS } from "@/lib/catalog";
 
-const productLinks = [
-  { label: "Lareiras",       href: "/lareiras" },
-  { label: "Recuperadores",  href: "/recuperadores" },
-  { label: "Salamandras",    href: "/salamandras" },
-  { label: "Fogões",         href: "/fogoes" },
-  { label: "Churrasqueiras", href: "/churrasqueiras" },
-];
 const navLinks = [
   { label: "Sobre nós", href: "/sobre" },
   { label: "Obras realizadas", href: "/obras" },
   { label: "Apoio ao cliente", href: "/apoio-ao-cliente" },
 ];
-const languages = ["PT", "ES", "FR", "EN"];
 
+const fuelLinks = MAIN_FUELS.map((f) => ({ label: FUELS[f], href: `/produtos?combustivel=${f}` }));
+
+// Menu como nos sites de referência: produtos por tipo e por combustível.
+// No telemóvel, o menu abre num painel (<details>, sem JavaScript).
 export default function Navbar() {
-  const [activeLang, setActiveLang] = useState("PT");
-
   return (
-    <nav
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        background: "transparent",
-        padding: "20px 52px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        zIndex: 10,
-      }}
-    >
-      <a href="/" style={{ display: "block", lineHeight: 0 }}>
-        <img
-          src="/images/logo.png"
-          alt="Lareiras Pachinha"
-          style={{
-            height: "80px",
-            width: "auto",
-            display: "block",
-            filter: "brightness(0) invert(1)",
-          }}
-        />
-      </a>
+    <nav className="site-nav">
+      <Link href="/" style={{ display: "block", lineHeight: 0 }}>
+        <img src="/images/logo.png" alt="Lareiras Pachinha" className="site-nav-logo" />
+      </Link>
 
-      <div style={{ display: "flex", gap: "32px", alignItems: "center" }}>
+      <div className="site-nav-links">
         <div className="nav-dropdown">
-          <button type="button" className="nav-link-hero" aria-haspopup="true">
+          <Link href="/produtos" className="nav-link-hero" aria-haspopup="true">
             Produtos <span aria-hidden style={{ fontSize: "10px", marginLeft: "2px" }}>▾</span>
-          </button>
-          <div className="nav-menu">
-            {productLinks.map((link) => (
-              <a key={link.label} href={link.href}>{link.label}</a>
-            ))}
+          </Link>
+          <div className="nav-menu nav-menu-cols">
+            <div>
+              <span className="nav-menu-head">Por tipo</span>
+              {CATEGORIES.map((c) => (
+                <Link key={c.slug} href={c.href}>{c.label}</Link>
+              ))}
+            </div>
+            <div>
+              <span className="nav-menu-head">Por combustível</span>
+              {fuelLinks.map((f) => (
+                <Link key={f.href} href={f.href}>{f.label}</Link>
+              ))}
+            </div>
           </div>
         </div>
         {navLinks.map((link) => (
-          <a key={link.label} href={link.href} className="nav-link-hero">
+          <Link key={link.label} href={link.href} className="nav-link-hero">
             {link.label}
-          </a>
+          </Link>
         ))}
-        <a href="/outlet" className="nav-link-hero-outlet">
+        <Link href="/outlet" className="nav-link-hero-outlet">
           Outlet
-        </a>
+        </Link>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            border: "1px solid rgba(255,255,255,0.30)",
-            borderRadius: "999px",
-            padding: "3px",
-            gap: "2px",
-          }}
-        >
-          {languages.map((lang) => (
-            <button
-              key={lang}
-              onClick={() => setActiveLang(lang)}
-              className={`lang-pill${activeLang === lang ? " lang-pill-active" : ""}`}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
-
-        <a href="/conta" className="nav-link-hero">
+      <div className="site-nav-actions">
+        <Link href="/conta" className="nav-link-hero">
           Área de cliente
-        </a>
-
-        <a
-          href="/pedir-orcamento"
-          className="btn-primary"
-          style={{
-            background: "#bf5b2d",
-            color: "#fff",
-            fontSize: "13.5px",
-            fontWeight: 600,
-            padding: "11px 20px",
-            borderRadius: "999px",
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-            display: "inline-block",
-          }}
-        >
-          Pedir Orçamento
-        </a>
+        </Link>
+        <Link href="/pedir-orcamento" className="btn-primary site-nav-cta">
+          Pedir orçamento
+        </Link>
       </div>
+
+      <details className="mobile-menu">
+        <summary aria-label="Abrir menu">
+          <span />
+          <span />
+          <span />
+        </summary>
+        <div className="mobile-menu-panel">
+          <span className="nav-menu-head">Produtos</span>
+          {CATEGORIES.map((c) => (
+            <Link key={c.slug} href={c.href}>{c.label}</Link>
+          ))}
+          <div className="mobile-menu-fuels">
+            {fuelLinks.map((f) => (
+              <Link key={f.href} href={f.href}>{f.label}</Link>
+            ))}
+          </div>
+          <span className="nav-menu-head">Pachinha</span>
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href}>{link.label}</Link>
+          ))}
+          <Link href="/outlet" style={{ color: "#e2a276" }}>Outlet</Link>
+          <Link href="/conta">Área de cliente</Link>
+          <Link href="/pedir-orcamento" className="btn-primary mobile-menu-cta">Pedir orçamento</Link>
+        </div>
+      </details>
     </nav>
   );
 }

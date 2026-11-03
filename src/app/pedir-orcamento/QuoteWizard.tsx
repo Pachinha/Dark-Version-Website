@@ -4,6 +4,7 @@ import Link from "next/link";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { submitQuote } from "@/app/actions/quote";
 import AvailabilityPicker from "@/components/account/AvailabilityPicker";
+import PlaceSearch, { type Place } from "@/components/account/PlaceSearch";
 import FormMessage from "@/components/account/FormMessage";
 import {
   CHIMNEY,
@@ -16,9 +17,13 @@ import {
   quoteRef,
 } from "@/lib/labels";
 import { companyWhatsappUrl } from "@/lib/notify";
-import { FREE_VISIT_MUNICIPALITIES, OTHER_MUNICIPALITY } from "@/lib/service-area";
+import { googleMapsUrl } from "@/lib/geo";
+import { FREE_VISIT_MUNICIPALITIES, OTHER_MUNICIPALITY, municipalityFromPostcode } from "@/lib/service-area";
+import PhoneInput from "@/components/PhoneInput";
+import { isValidPhone } from "@/lib/phone";
 
 type Contact = { name: string; phone: string; email: string };
+export type SavedAddress = { id: string; label: string; address: string; details: string; postcode: string; locality: string; lat: number; lng: number };
 type Photo = { file: File; url: string };
 
 const STEPS = ["O que procura", "A obra", "Fotos", "Visita", "Confirmar"];
@@ -64,21 +69,32 @@ function Choices({
   );
 }
 
-export default function QuoteWizard({ contact, signedIn }: { contact: Contact; signedIn: boolean }) {
+export default function QuoteWizard({
+  contact,
+  signedIn,
+  initial = { category: "", fuel: "" },
+  savedAddresses = [],
+}: {
+  contact: Contact;
+  signedIn: boolean;
+  initial?: { category: string; fuel: string };
+  savedAddresses?: SavedAddress[];
+}) {
   const [state, action, pending] = useActionState(submitQuote, undefined);
 
   const empty = {
-    category: "",
+    category: initial.category,
     work_type: "",
     home_type: "",
     chimney: "",
     area_m2: "",
-    fuel: "",
+    fuel: initial.fuel,
     message: "",
     ...contact,
     municipality: "",
     other_municipality: "",
-    address: "",
+    place: null as Place | null,
+    address_details: "",
     availability: [] as string[],
     contact_preference: "telefone",
     privacy: false,
@@ -91,6 +107,18 @@ export default function QuoteWizard({ contact, signedIn }: { contact: Contact; s
   const [submitted, setSubmitted] = useState(false);
   const honeypot = useRef<HTMLInputElement>(null);
   const set = <K extends keyof typeof empty>(key: K, value: (typeof empty)[K]) => setData((d) => ({ ...d, [key]: value }));
+
+  // Ao escolher a morada, o concelho fica preenchido sozinho pelo código postal (zona gratuita).
+  function choosePlace(place: Place, details = "") {
+    const known = municipalityFromPostcode(place.postcode);
+    setData((d) => ({
+      ...d,
+      place,
+      address_details: details || d.address_details,
+      municipality: known || (place.postcode ? OTHER_MUNICIPALITY : d.municipality),
+      other_municipality: known ? "" : d.other_municipality,
+    }));
+  }
 
   const done = submitted && !pending && state?.success;
   const outside = data.municipality === OTHER_MUNICIPALITY;
@@ -106,12 +134,12 @@ export default function QuoteWizard({ contact, signedIn }: { contact: Contact; s
     if (s === 1 && data.area_m2 && (Number(data.area_m2) < 5 || Number(data.area_m2) > 2000)) return "A área deve estar entre 5 e 2000 m².";
     if (s === 3) {
       if (data.name.trim().length < 2) return "Indique o seu nome.";
-      if (data.phone.replace(/\D/g, "").length < 9) return "Indique um número de telefone válido.";
+      if (!isValidPhone(data.phone)) return "Indique um número de telefone válido.";
       if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) return "O email não parece válido.";
       if (data.contact_preference === "email" && !data.email.trim()) return "Indique o email para o podermos contactar.";
       if (!data.municipality) return "Escolha o concelho da obra.";
       if (outside && data.other_municipality.trim().length < 2) return "Indique o concelho ou localidade da obra.";
-      if (data.address.trim().length < 5) return "Indique a morada da obra.";
+      if (!data.place) return "Escolha a morada da obra na pesquisa (ou use a sua localização).";
     }
     if (s === 4 && !signedIn && !data.privacy) return "Para enviarmos o pedido, aceite a Política de Privacidade.";
     return "";
@@ -171,7 +199,15 @@ export default function QuoteWizard({ contact, signedIn }: { contact: Contact; s
 
     const fd = new FormData();
     for (const [key, value] of Object.entries(data)) {
-      if (key === "availability") (value as string[]).forEach((v) => fd.append(key, v));
+      if (key === "place") {
+        // Só moradas reais: vai a morada encontrada na pesquisa, com as coordenadas.
+        const place = value as Place;
+        fd.append("address", place.address);
+        fd.append("postcode", place.postcode);
+        fd.append("locality", place.locality);
+        fd.append("lat", String(place.lat));
+        fd.append("lng", String(place.lng));
+      } else if (key === "availability") (value as string[]).forEach((v) => fd.append(key, v));
       else if (key === "privacy") fd.append(key, value ? "on" : "");
       else fd.append(key, String(value));
     }
@@ -356,18 +392,69 @@ export default function QuoteWizard({ contact, signedIn }: { contact: Contact; s
               Nome
               <input autoComplete="name" value={data.name} onChange={(e) => set("name", e.target.value)} maxLength={120} />
             </label>
-            <label className="field" style={{ flex: 1, minWidth: 200 }}>
+            <div className="field" style={{ flex: 1, minWidth: 240 }}>
               Telefone
-              <input type="tel" autoComplete="tel" value={data.phone} onChange={(e) => set("phone", e.target.value)} maxLength={30} />
-            </label>
+              <PhoneInput value={data.phone} onChange={(v) => set("phone", v)} required />
+            </div>
           </div>
           <label className="field">
             Email <span className="hint">Opcional — para receber o orçamento por email</span>
             <input type="email" autoComplete="email" value={data.email} onChange={(e) => set("email", e.target.value)} maxLength={200} />
           </label>
+          <div className="field" role="group" aria-label="Morada da obra">
+            Morada da obra
+            <span className="hint">Escolha uma morada real da pesquisa — assim o técnico chega à porta com o Google Maps ou o Waze.</span>
+          </div>
+          {data.place ? (
+            <div className="item">
+              <div className="item-head">
+                <strong>{data.place.address}</strong>
+                <span className="badge">{data.place.source === "gps" ? "Localização GPS" : "Morada verificada"}</span>
+              </div>
+              <div className="row" style={{ marginTop: 8 }}>
+                <a className="link" href={googleMapsUrl(data.place.lat, data.place.lng)} target="_blank" rel="noreferrer">
+                  Confirmar no mapa ↗
+                </a>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => set("place", null)}>
+                  Alterar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {savedAddresses.length > 0 && (
+                <div className="list" style={{ gap: 6 }}>
+                  <span className="hint">As suas moradas guardadas</span>
+                  {savedAddresses.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      className="item"
+                      style={{ width: "100%", textAlign: "left", cursor: "pointer", font: "inherit" }}
+                      onClick={() =>
+                        choosePlace(
+                          { address: a.address, postcode: a.postcode, locality: a.locality, lat: a.lat, lng: a.lng, source: "search" },
+                          a.details,
+                        )
+                      }
+                    >
+                      <strong>{a.label}</strong> — {a.address}
+                    </button>
+                  ))}
+                  <span className="hint">Ou procure outra morada:</span>
+                </div>
+              )}
+              <PlaceSearch onSelect={(place) => choosePlace(place)} placeholder="Rua e localidade da obra" />
+            </>
+          )}
+          <label className="field">
+            Nº de porta, andar, indicações <span className="hint">Opcional — ex.: nº 25, portão verde</span>
+            <input value={data.address_details} onChange={(e) => set("address_details", e.target.value)} maxLength={200} />
+          </label>
+
           <div className="row" style={{ alignItems: "flex-start" }}>
             <label className="field" style={{ flex: 1, minWidth: 200 }}>
-              Concelho da obra
+              Concelho da obra <span className="hint">Preenchido pela morada — confirme</span>
               <select value={data.municipality} onChange={(e) => set("municipality", e.target.value)}>
                 <option value="" disabled>Escolha…</option>
                 <optgroup label="Visita gratuita">
@@ -389,11 +476,6 @@ export default function QuoteWizard({ contact, signedIn }: { contact: Contact; s
               antes de marcar a visita.
             </p>
           )}
-          <label className="field">
-            Morada da obra
-            <input autoComplete="street-address" value={data.address} onChange={(e) => set("address", e.target.value)} maxLength={300} placeholder="Rua, número, localidade" />
-          </label>
-
           <AvailabilityPicker value={data.availability} onChange={(v) => set("availability", v)} />
 
           <label className="field" style={{ maxWidth: 320 }}>
@@ -424,7 +506,7 @@ export default function QuoteWizard({ contact, signedIn }: { contact: Contact; s
             )}
             <div><dt>Fotos</dt><dd>{photos.length ? `${photos.length} foto${photos.length > 1 ? "s" : ""}` : "Sem fotos"}</dd></div>
             <div><dt>Contacto</dt><dd>{data.name} · {data.phone}{data.email && ` · ${data.email}`}</dd></div>
-            <div><dt>Morada</dt><dd>{data.address}, {outside ? data.other_municipality : data.municipality}</dd></div>
+            <div><dt>Morada</dt><dd>{data.place?.address}{data.address_details && ` (${data.address_details})`}{outside && data.other_municipality ? ` · ${data.other_municipality}` : ""}</dd></div>
             <div><dt>Disponível</dt><dd>{describeAvailability(data.availability)}</dd></div>
             <div><dt>Contactar por</dt><dd>{CONTACT_PREFERENCE[data.contact_preference]}</dd></div>
           </dl>

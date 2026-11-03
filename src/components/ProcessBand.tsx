@@ -1,26 +1,27 @@
+import Link from "next/link";
 import AnimateIn from "./AnimateIn";
 
 const steps = [
-  { num: "01", title: "Fale connosco",   body: "Online, por telefone ou no show-room. Diga-nos o espaço que quer aquecer." },
-  { num: "02", title: "Visita técnica",  body: "Avaliamos a instalação existente e propomos a solução certa." },
+  { num: "01", title: "Fale connosco",   body: "Faça o seu pedido online, por telefone ou no showroom." },
+  { num: "02", title: "Visita técnica",  body: "Gratuita no Alto Minho. Avaliamos o espaço e a chaminé." },
   { num: "03", title: "Orçamento claro", body: "Equipamento, tubagem e mão-de-obra, sem surpresas." },
   { num: "04", title: "Instalação",      body: "Equipa própria, obra limpa e equipamento a funcionar." },
 ];
 
 export default function ProcessBand() {
   return (
-    <section style={{ background: "#1a1108", padding: "0 52px 80px" }}>
-      <div style={{ background: "#262019", color: "#f2ece2", borderRadius: "20px", padding: "56px 52px" }}>
-        <AnimateIn style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "48px" }}>
-          <h2 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "30px", fontWeight: 700, margin: 0, color: "#f2ece2" }}>
+    <section className="sec" style={{ background: "#1a1108", padding: "0 52px 80px" }}>
+      <div className="band" style={{ background: "#262019", color: "#f2ece2", borderRadius: "20px", padding: "56px 52px" }}>
+        <AnimateIn className="head-row" style={{ marginBottom: "40px" }}>
+          <h2 className="sec-title" style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "30px", fontWeight: 700, margin: 0, color: "#f2ece2" }}>
             Do orçamento à chama
           </h2>
-          <a href="#" style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
+          <Link href="/pedir-orcamento" style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
             Pedir orçamento →
-          </a>
+          </Link>
         </AnimateIn>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "32px" }}>
+        <div className="grid-steps">
           {steps.map((step, i) => (
             <AnimateIn key={step.num} delay={i * 100}>
               <div style={{ borderTop: "1px solid rgba(226,162,118,0.25)", paddingTop: "24px" }}>

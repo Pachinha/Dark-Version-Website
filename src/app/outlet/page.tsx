@@ -1,11 +1,13 @@
 import CategoryLayout from "@/components/CategoryLayout";
+import type { Product } from "@/lib/catalog";
 
 export const metadata = { title: "Outlet — Lareiras Pachinha" };
 
-const products = [
-  { brand: "MCZ", name: "Salamandra a pellets — exposição", fuel: "Pellets", img: "/images/salamandra.jpg", badge: "−30%" },
-  { brand: "Solzaima", name: "Recuperador a lenha — último", fuel: "Lenha", img: "/images/recuperador.jpg", badge: "Último" },
-  { brand: "Bellfires", name: "Lareira a gás — exposição", fuel: "Gás", img: "/images/lareira.jpg", badge: "−20%" },
+// Modelos de exposição e últimas unidades (provisórios até a Sandra indicar os reais).
+const products: Product[] = [
+  { category: "salamandras", brand: "MCZ", name: "Salamandra a pellets — exposição", fuel: "pellets", img: "/images/orcamento/salamandra.jpg", badge: "Exposição" },
+  { category: "recuperadores", brand: "Solzaima", name: "Recuperador a lenha — última unidade", fuel: "lenha", img: "/images/orcamento/recuperador.jpg", badge: "Última unidade" },
+  { category: "lareiras", brand: "Bellfires", name: "Lareira a gás — exposição", fuel: "gas", img: "/images/orcamento/lareira.jpg", badge: "Exposição" },
 ];
 
 export default function OutletPage() {
@@ -13,8 +15,8 @@ export default function OutletPage() {
     <CategoryLayout
       category="Outlet"
       title="Equipamentos a preços especiais."
-      subtitle="Modelos de exposição, últimas unidades e devoluções em perfeitas condições. Oportunidades limitadas — aconselhe-se connosco."
-      heroImg="/images/prod1.jpg"
+      subtitle="Modelos de exposição e últimas unidades em perfeitas condições. Quantidades limitadas."
+      heroImg="/images/orcamento/recuperador.jpg"
       products={products}
     />
   );

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PRIVACY_VERSION } from "@/lib/legal";
 import { REMEMBER_COOKIE } from "@/lib/supabase/remember";
+import { isValidPhone } from "@/lib/phone";
 
 export type FormState = { error?: string; success?: string } | undefined;
 
@@ -34,6 +35,7 @@ export async function signup(_: FormState, formData: FormData): Promise<FormStat
   if (fullName.length < 2) return { error: "Indique o seu nome." };
   if (!EMAIL_RE.test(email)) return { error: "Indique um email válido." };
   if (password.length < 8) return { error: "A palavra-passe deve ter pelo menos 8 caracteres." };
+  if (phone && !isValidPhone(phone)) return { error: "Telefone inválido — confirme o país e o número." };
   if (!acceptedPrivacy) {
     return { error: "Para criar conta tem de aceitar a Política de Privacidade e os Termos." };
   }
@@ -90,10 +92,11 @@ export async function login(_: FormState, formData: FormData): Promise<FormState
   redirect(safeNext(formData.get("next")));
 }
 
-export async function logout() {
+// Optional "next" field: e.g. back to the staff login after leaving the wrong account.
+export async function logout(formData?: FormData) {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/");
+  redirect(safeNext(formData?.get("next") ?? null, "/"));
 }
 
 export async function requestPasswordReset(_: FormState, formData: FormData): Promise<FormState> {

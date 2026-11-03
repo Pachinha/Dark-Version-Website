@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getCurrentUser, isPanelMember } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { FormState } from "./auth";
 
@@ -72,7 +72,7 @@ export async function verifyCode(_: FormState, formData: FormData): Promise<Form
 export async function disableMfa(): Promise<FormState> {
   const current = await getCurrentUser();
   if (!current) return { error: "Sessão expirada." };
-  if (isStaff(current.profile)) return { error: "Para a equipa, a verificação em dois passos é obrigatória." };
+  if (isPanelMember(current.profile)) return { error: "Para a equipa, a verificação em dois passos é obrigatória." };
   if (!current.mfaVerified) return { error: "Confirme primeiro o código da app." };
 
   const supabase = await createClient();

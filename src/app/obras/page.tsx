@@ -30,11 +30,11 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
       <div style={{ position: "relative", height: "50svh" }}>
         <section style={{ height: "50svh", position: "relative", overflow: "hidden", background: "#1a1108" }}>
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 60%, rgba(191,91,45,0.18) 0%, transparent 65%)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", left: "52px", maxWidth: "560px", zIndex: 1 }}>
+          <div className="hero-inline" style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", left: "52px", maxWidth: "560px", zIndex: 1 }}>
             <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#e2a276", display: "block", marginBottom: "12px" }}>
               Portfólio
             </span>
-            <h1 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "44px", lineHeight: 1.08, fontWeight: 700, margin: "0 0 16px", color: "#f2ece2" }}>
+            <h1 className="hero-inline-title" style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "44px", lineHeight: 1.08, fontWeight: 700, margin: "0 0 16px", color: "#f2ece2" }}>
               Obras realizadas
             </h1>
             <p style={{ fontSize: "14.5px", lineHeight: 1.65, color: "rgba(242,236,226,0.60)", margin: 0 }}>
@@ -46,7 +46,7 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
       </div>
 
       <main style={{ background: "#1a1108" }}>
-        <section style={{ padding: "56px 52px 80px" }}>
+        <section className="sec" style={{ padding: "56px 52px 80px" }}>
           <nav aria-label="Filtrar obras" style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }}>
             <Link href="/obras" style={chip(!active)} aria-current={!active ? "page" : undefined}>Todas</Link>
             {usedTypes.map((t) => (
@@ -56,7 +56,7 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
             ))}
           </nav>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "18px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))", gap: "18px" }}>
             {projects.map((p, i) => (
               <AnimateIn key={`${p.title}-${i}`} delay={(i % 3) * 80}>
                 <figure className="product-img-zoom" style={{ margin: 0, position: "relative", borderRadius: "16px", overflow: "hidden", background: "#3d2a18", aspectRatio: "4 / 3" }}>
@@ -76,16 +76,16 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
           </div>
         </section>
 
-        <section style={{ padding: "0 52px 80px" }}>
+        <section className="sec" style={{ padding: "0 52px 80px" }}>
           <AnimateIn>
-            <div style={{ background: "#262019", borderRadius: "20px", padding: "48px 52px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
+            <div className="band" style={{ background: "#262019", borderRadius: "20px", padding: "48px 52px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
               <div>
                 <h2 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "26px", fontWeight: 700, color: "#f2ece2", margin: "0 0 8px" }}>
                   Quer uma obra assim em sua casa?
                 </h2>
                 <p style={{ fontSize: "14.5px", color: "rgba(242,236,226,0.60)", margin: 0 }}>Visita técnica e orçamento sem compromisso.</p>
               </div>
-              <Link href="/apoio-ao-cliente" className="btn-primary" style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "14px 28px", borderRadius: "999px", textDecoration: "none", whiteSpace: "nowrap" }}>
+              <Link href="/pedir-orcamento" className="btn-primary" style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "14px 28px", borderRadius: "999px", textDecoration: "none", whiteSpace: "nowrap" }}>
                 Fazer o meu pedido →
               </Link>
             </div>

@@ -12,7 +12,7 @@ export default async function AdminQuotesPage({ searchParams }: { searchParams: 
 
   let query = supabase
     .from("quote_requests")
-    .select("id, ref, user_id, category, work_type, status, municipality, outside_area, availability, photos, visit_at, name, created_at, profiles(full_name)")
+    .select("id, ref, user_id, category, work_type, status, municipality, outside_area, availability, photos, visit_at, name, created_at, profiles!quote_requests_user_id_fkey(full_name)")
     .order("created_at", { ascending: false })
     .limit(300);
   if (estado && estado in QUOTE_STATUS) query = query.eq("status", estado);

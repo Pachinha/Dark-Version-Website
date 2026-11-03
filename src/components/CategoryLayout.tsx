@@ -2,118 +2,68 @@ import Link from "next/link";
 import Navbar from "./Navbar";
 import AnimateIn from "./AnimateIn";
 import Footer from "./Footer";
-
-interface Product {
-  brand: string;
-  name: string;
-  fuel: string;
-  img: string;
-  badge?: string;
-}
+import ProductGrid, { Filters, type FilterRow } from "./ProductGrid";
+import type { Product } from "@/lib/catalog";
 
 interface Props {
   category: string;
   title: string;
   subtitle: string;
   heroImg: string;
-  accentColor?: string;
   products: Product[];
+  filters?: FilterRow[];
+  quoteHref?: string;
 }
 
-export default function CategoryLayout({ category, title, subtitle, heroImg, products }: Props) {
+// Página de categoria ao estilo dos sites de referência: cabeçalho curto, filtros simples e grelha de modelos.
+export default function CategoryLayout({ category, title, subtitle, heroImg, products, filters = [], quoteHref = "/pedir-orcamento" }: Props) {
   return (
     <>
-      {/* Hero da categoria */}
-      <div style={{ position: "relative", height: "60svh" }}>
-        <section style={{ height: "60svh", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "relative", height: "46svh", minHeight: "360px" }}>
+        <section style={{ height: "100%", position: "relative", overflow: "hidden" }}>
           <img
             src={heroImg}
-            alt={title}
+            alt=""
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
             loading="eager"
           />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(14,9,4,0.88) 0%, rgba(14,9,4,0.80) 40%, rgba(14,9,4,0.30) 70%, transparent 90%)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", left: "52px", maxWidth: "480px", zIndex: 1 }}>
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(14,9,4,0.9) 0%, rgba(14,9,4,0.8) 45%, rgba(14,9,4,0.35) 75%, rgba(14,9,4,0.2) 100%)", pointerEvents: "none" }} />
+          <div className="page-hero-copy">
             <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#e2a276", display: "block", marginBottom: "12px" }}>
               {category}
             </span>
-            <h1 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "44px", lineHeight: 1.08, fontWeight: 700, margin: "0 0 16px", color: "#ffffff" }}>
-              {title}
-            </h1>
-            <p style={{ fontSize: "14.5px", lineHeight: 1.65, color: "rgba(255,255,255,0.65)", margin: "0 0 28px" }}>
-              {subtitle}
-            </p>
-            <a
-              href="#orcamento"
-              className="btn-primary"
-              style={{ background: "#bf5b2d", color: "#fff", fontSize: "13.5px", fontWeight: 600, padding: "13px 22px", borderRadius: "999px", textDecoration: "none", display: "inline-block" }}
-            >
-              Pedir orçamento grátis →
-            </a>
+            <h1 className="page-hero-title">{title}</h1>
+            <p style={{ fontSize: "14.5px", lineHeight: 1.6, color: "rgba(255,255,255,0.65)", margin: 0 }}>{subtitle}</p>
           </div>
         </section>
         <Navbar />
       </div>
 
-      {/* Produtos */}
       <main style={{ background: "#1a1108" }}>
-        <section style={{ padding: "72px 52px 80px" }}>
-          <AnimateIn style={{ marginBottom: "36px", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <h2 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "28px", fontWeight: 700, margin: 0, color: "#f2ece2" }}>
-              Modelos em destaque
-            </h2>
-            <a href="/" style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
-              ← Voltar à página inicial
-            </a>
-          </AnimateIn>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px" }}>
-            {products.map((product, i) => (
-              <AnimateIn key={`${product.brand}-${product.name}`} delay={i * 100}>
-                <div
-                  className="card-hover"
-                  style={{ background: "#2a1a0c", borderRadius: "16px", overflow: "hidden", display: "flex", flexDirection: "column" }}
-                >
-                  <div className="product-img-zoom" style={{ position: "relative", height: "240px", background: "#3d2a18", flexShrink: 0, overflow: "hidden" }}>
-                    <img src={product.img} alt={`${product.brand} ${product.name}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
-                    {product.badge && (
-                      <span style={{ position: "absolute", top: "12px", left: "12px", background: "#bf5b2d", color: "#fff", fontSize: "11px", fontWeight: 600, padding: "4px 10px", borderRadius: "999px" }}>
-                        {product.badge}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ padding: "18px 22px 20px", display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
-                    <div style={{ fontSize: "11.5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#e2a276" }}>{product.brand}</div>
-                    <div style={{ fontSize: "17px", fontWeight: 600, color: "#f2ece2" }}>{product.name}</div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "14px" }}>
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "rgba(242,236,226,0.6)", background: "rgba(242,236,226,0.07)", padding: "4px 10px", borderRadius: "999px" }}>{product.fuel}</span>
-                      <a href="#orcamento" style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
-                        Pedir informação →
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </AnimateIn>
-            ))}
-          </div>
+        <section className="sec" style={{ padding: "56px 52px 72px" }}>
+          <Filters rows={filters} />
+          <ProductGrid products={products} />
+          <p style={{ fontSize: "13.5px", color: "rgba(242,236,226,0.5)", margin: "28px 0 0" }}>
+            Estes são alguns dos modelos com que trabalhamos. Não encontra o que procura? Temos acesso a muitos mais —{" "}
+            <Link href={quoteHref} style={{ color: "#e2a276" }}>diga-nos o que precisa</Link>.
+          </p>
         </section>
 
-        {/* CTA final */}
-        <section id="orcamento" style={{ padding: "0 52px 80px" }}>
+        <section className="sec" style={{ padding: "0 52px 80px" }}>
           <AnimateIn>
-            <div style={{ background: "#262019", borderRadius: "20px", padding: "56px 52px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="band" style={{ background: "#262019", borderRadius: "20px", padding: "48px 52px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
               <div>
-                <h2 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "28px", fontWeight: 700, color: "#f2ece2", margin: "0 0 10px" }}>
-                  Pronto para aquecer o seu espaço?
+                <h2 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "26px", fontWeight: 700, color: "#f2ece2", margin: "0 0 8px" }}>
+                  Visita técnica gratuita
                 </h2>
                 <p style={{ fontSize: "14.5px", color: "rgba(242,236,226,0.60)", margin: 0 }}>
-                  Visita técnica gratuita. Orçamento sem compromisso.
+                  Vamos a sua casa, aconselhamos o equipamento certo e enviamos o orçamento sem compromisso.
                 </p>
               </div>
               <Link
-                href="/pedir-orcamento"
+                href={quoteHref}
                 className="btn-primary"
-                style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "14px 28px", borderRadius: "999px", textDecoration: "none", whiteSpace: "nowrap", display: "inline-block", flexShrink: 0 }}
+                style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "14px 28px", borderRadius: "999px", textDecoration: "none", whiteSpace: "nowrap" }}
               >
                 Pedir orçamento →
               </Link>

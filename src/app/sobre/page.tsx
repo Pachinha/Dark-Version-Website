@@ -47,9 +47,9 @@ export default function SobrePage() {
           <img src="/images/sobre/moncao.jpg" alt="Vista aérea de Monção e do rio Minho" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} loading="eager" />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(14,9,4,0.92) 0%, rgba(14,9,4,0.80) 42%, rgba(14,9,4,0.35) 75%, rgba(14,9,4,0.2) 100%)" }} />
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "30%", background: "linear-gradient(to bottom, transparent, #1a1108)" }} />
-          <div style={{ position: "absolute", top: "55%", transform: "translateY(-50%)", left: "52px", maxWidth: "560px", zIndex: 1 }}>
+          <div className="hero-inline" style={{ position: "absolute", top: "55%", transform: "translateY(-50%)", left: "52px", maxWidth: "560px", zIndex: 1 }}>
             <span style={eyebrow}>Sobre nós</span>
-            <h1 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "48px", lineHeight: 1.06, fontWeight: 700, margin: "0 0 18px", color: "#fff" }}>
+            <h1 className="hero-inline-title" style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "48px", lineHeight: 1.06, fontWeight: 700, margin: "0 0 18px", color: "#fff" }}>
               Há {yearsInBusiness()} anos a aquecer casas, a partir de Monção.
             </h1>
             <p style={{ fontSize: "15px", lineHeight: 1.65, color: "rgba(255,255,255,0.7)", margin: 0 }}>
@@ -62,7 +62,7 @@ export default function SobrePage() {
 
       <main style={{ background: "#1a1108" }}>
         {/* Números */}
-        <section style={{ padding: "56px 52px 0" }}>
+        <section className="sec" style={{ padding: "56px 52px 0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
             {stats.map((s, i) => (
               <AnimateIn key={s.label} delay={i * 80}>
@@ -76,7 +76,7 @@ export default function SobrePage() {
         </section>
 
         {/* A nossa história */}
-        <section style={{ padding: "80px 52px 0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "56px", alignItems: "start" }}>
+        <section className="sec" style={{ padding: "80px 52px 0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(340px, 100%), 1fr))", gap: "56px", alignItems: "start" }}>
           <AnimateIn>
             <span style={eyebrow}>A nossa história</span>
             <h2 style={h2}>De importadores a fabricantes</h2>
@@ -109,7 +109,7 @@ export default function SobrePage() {
         </section>
 
         {/* Prémios */}
-        <section style={{ padding: "64px 52px 0" }}>
+        <section className="sec" style={{ padding: "64px 52px 0" }}>
           <AnimateIn>
             <span style={eyebrow}>Prémios e distinções</span>
             <h2 style={h2}>Reconhecidos lá fora</h2>
@@ -137,10 +137,10 @@ export default function SobrePage() {
         </section>
 
         {/* Grupo Pachinha / GlammFire */}
-        <section style={{ padding: "80px 52px 0" }}>
+        <section className="sec" style={{ padding: "80px 52px 0" }}>
           <AnimateIn>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", borderRadius: "20px", overflow: "hidden", background: "#2a1a0c" }}>
-              <div style={{ padding: "52px 48px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(340px, 100%), 1fr))", borderRadius: "20px", overflow: "hidden", background: "#2a1a0c" }}>
+              <div className="band" style={{ padding: "52px 48px" }}>
                 <span style={eyebrow}>Grupo Pachinha</span>
                 <h2 style={h2}>Fabricamos em Monção para o mundo</h2>
                 <p style={body}>
@@ -161,9 +161,9 @@ export default function SobrePage() {
         </section>
 
         {/* CTA */}
-        <section style={{ padding: "64px 52px 80px" }}>
+        <section className="sec" style={{ padding: "64px 52px 80px" }}>
           <AnimateIn>
-            <div style={{ background: "#262019", borderRadius: "20px", padding: "48px 52px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
+            <div className="band" style={{ background: "#262019", borderRadius: "20px", padding: "48px 52px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
               <div>
                 <h2 style={{ ...h2, fontSize: "26px", margin: "0 0 8px" }}>Venha conhecer-nos</h2>
                 <p style={{ fontSize: "14.5px", color: "rgba(242,236,226,0.60)", margin: 0 }}>Veja as obras que já fizemos ou peça-nos um orçamento sem compromisso.</p>

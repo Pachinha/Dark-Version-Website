@@ -12,7 +12,7 @@ export default async function AdminJobsList({ searchParams }: { searchParams: Pr
 
   let query = supabase
     .from("jobs")
-    .select("id, title, status, scheduled_start, scheduled_end, client:profiles!jobs_user_id_fkey(full_name), tech:profiles!jobs_technician_id_fkey(full_name), addresses(locality)")
+    .select("id, title, status, scheduled_start, scheduled_end, name, client:profiles!jobs_user_id_fkey(full_name), quote:quote_requests(name), tech:profiles!jobs_technician_id_fkey(full_name), addresses(locality)")
     .order("scheduled_start", { ascending: true, nullsFirst: true })
     .limit(300);
   if (estado && estado in JOB_STATUS) query = query.eq("status", estado);
@@ -31,7 +31,7 @@ export default async function AdminJobsList({ searchParams }: { searchParams: Pr
             <li key={j.id}>
               <Link href={panel(`/obras/${j.id}`)} className="item" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
                 <div className="item-head">
-                  <strong>{j.title} — {one(j.client)?.full_name}</strong>
+                  <strong>{j.title} — {one(j.client)?.full_name || j.name || one(j.quote)?.name}</strong>
                   <span className="badge">{JOB_STATUS[j.status]}</span>
                 </div>
                 <div className="muted">

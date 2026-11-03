@@ -5,6 +5,7 @@ import { useActionState, useState, startTransition } from "react";
 import { createMaintenance } from "@/app/actions/account";
 import FormMessage from "@/components/account/FormMessage";
 import AvailabilityPicker from "@/components/account/AvailabilityPicker";
+import PhoneInput from "@/components/PhoneInput";
 import {
   CONTACT_PREFERENCE,
   MAINTENANCE_SERVICE,
@@ -12,6 +13,7 @@ import {
   describeAvailability,
   formatDate,
 } from "@/lib/labels";
+import { isValidPhone } from "@/lib/phone";
 
 type Address = { id: string; label: string; address: string; details: string };
 
@@ -65,7 +67,7 @@ export default function MaintenanceForm({ addresses, needsPhone }: { addresses: 
   function validate(s: number) {
     if (s === 0 && !data.service) return "Escolha o tipo de serviço.";
     if (s === 1 && data.equipment.trim().length < 2) return "Indique o equipamento (ex.: recuperador a lenha Solzaima).";
-    if (s === 1 && needsPhone && data.phone.replace(/\D/g, "").length < 9) return "Indique um número de telefone válido.";
+    if (s === 1 && needsPhone && !isValidPhone(data.phone)) return "Indique um número de telefone válido.";
     return "";
   }
 
@@ -173,10 +175,10 @@ export default function MaintenanceForm({ addresses, needsPhone }: { addresses: 
             <Link href="/conta/moradas" className="hint">+ Adicionar outra morada</Link>
           </label>
           {needsPhone && (
-            <label className="field">
+            <div className="field">
               Telefone <span className="hint">Para o secretariado o contactar e confirmar a visita</span>
-              <input type="tel" autoComplete="tel" value={data.phone} onChange={(e) => set("phone", e.target.value)} />
-            </label>
+              <PhoneInput value={data.phone} onChange={(v) => set("phone", v)} />
+            </div>
           )}
         </fieldset>
       )}

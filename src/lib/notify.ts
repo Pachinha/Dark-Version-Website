@@ -1,5 +1,5 @@
-// Builds the client notification shown after an admin change. Nothing is sent
-// automatically: the admin's own email app / WhatsApp opens with the text ready.
+// Builds the client notification shown after an admin change. Email is sent by the
+// server (SMTP, see emailClient); WhatsApp opens the admin's app with the text ready.
 
 export type Notice = {
   clientId: string | null; // null = pedido feito sem conta
@@ -10,6 +10,7 @@ export type Notice = {
   phone: string;
   subject: string;
   message: string;
+  sheetId?: string; // folha de orçamento: o email leva o PDF em anexo
 };
 
 // Portuguese numbers: "912 345 678" → "351912345678". Returns "" if unusable.

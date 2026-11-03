@@ -12,7 +12,7 @@ export default async function AdminMaintenanceList({ searchParams }: { searchPar
 
   let query = supabase
     .from("maintenance_requests")
-    .select("id, service, equipment, status, scheduled_for, preferred_date, availability, urgency, created_at, client:profiles!maintenance_requests_user_id_fkey(full_name), tech:profiles!maintenance_requests_technician_id_fkey(full_name), addresses(locality)")
+    .select("id, service, equipment, status, scheduled_for, preferred_date, availability, urgency, created_at, name, client:profiles!maintenance_requests_user_id_fkey(full_name), tech:profiles!maintenance_requests_technician_id_fkey(full_name), addresses(locality)")
     .order("scheduled_for", { ascending: true, nullsFirst: true })
     .limit(300);
   if (estado && estado in MAINTENANCE_STATUS) query = query.eq("status", estado);
@@ -28,7 +28,7 @@ export default async function AdminMaintenanceList({ searchParams }: { searchPar
             <li key={m.id}>
               <Link href={panel(`/manutencao/${m.id}`)} className="item" style={{ display: "block", textDecoration: "none", color: "inherit" }}>
                 <div className="item-head">
-                  <strong>{MAINTENANCE_SERVICE[m.service]} — {one(m.client)?.full_name}</strong>
+                  <strong>{MAINTENANCE_SERVICE[m.service]} — {one(m.client)?.full_name || m.name}</strong>
                   <span className="row" style={{ gap: 6 }}>
                     {m.status === "pendente" && m.urgency === "urgente" && <span className="pref pref-urgente">Urgente</span>}
                     <span className="badge">{MAINTENANCE_STATUS[m.status]}</span>

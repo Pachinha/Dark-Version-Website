@@ -3,11 +3,16 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { updateQuote } from "@/app/actions/admin";
+import { startJobFromQuote } from "@/app/actions/sheets";
+import { SHEET_COLUMNS, euro, sheetKind, sheetNumber, sheetTotals, type Sheet } from "@/lib/quote-sheet";
 import ConfirmedForm from "@/components/admin/ConfirmedForm";
 import History from "@/components/admin/History";
+import Comments from "@/components/admin/Comments";
+import SharePanel from "@/components/admin/SharePanel";
 import AvailabilityTable from "@/components/admin/AvailabilityTable";
 import { CHIMNEY, CONTACT_PREFERENCE, FUEL, HOME_TYPE, QUOTE_STATUS, WORK_TYPE, formatDate, one, quoteRef, toLocalInput } from "@/lib/labels";
-import { googleMapsSearchUrl, wazeSearchUrl } from "@/lib/geo";
+import Directions from "@/components/admin/Directions";
+import LocationRequest from "@/components/admin/LocationRequest";
 import { whatsappNumber } from "@/lib/notify";
 import { panel } from "@/lib/panel";
 import { signedPhotoUrls } from "@/lib/quote-photos";
@@ -19,17 +24,24 @@ export default async function AdminQuoteDetail({ params }: { params: Promise<{ i
 
   const { data: q } = await supabase
     .from("quote_requests")
-    .select("*, profiles(id, full_name, email, phone)")
+    .select("*, profiles!quote_requests_user_id_fkey(id, full_name, email, phone)")
     .eq("id", id)
     .maybeSingle();
   if (!q) notFound();
 
-  const photos = await signedPhotoUrls(q.photos);
+  const [photos, { data: sheetRows }, { data: job }] = await Promise.all([
+    signedPhotoUrls(q.photos),
+    supabase.from("quote_sheets").select(SHEET_COLUMNS).eq("quote_id", id).order("number", { ascending: false }),
+    supabase.from("jobs").select("id, title, status").eq("quote_id", id).limit(1).maybeSingle(),
+  ]);
+  const sheets = (sheetRows ?? []) as Sheet[];
+  const sent = sheets.filter((sh) => sh.sent_at);
+  const newSheet = panel(`/orcamentos/${q.id}/folha/nova`);
   const account = one(q.profiles) as { id: string; full_name: string; email: string; phone: string } | null;
   const name = account?.full_name || q.name;
   const phone = q.phone || account?.phone || "";
   const email = q.email || account?.email || "";
-  const place = [q.address, q.municipality].filter(Boolean).join(", ");
+  const place = q.lat != null ? q.address : [q.address, q.municipality].filter(Boolean).join(", ");
   const wa = whatsappNumber(phone);
 
   return (
@@ -43,7 +55,7 @@ export default async function AdminQuoteDetail({ params }: { params: Promise<{ i
           <h2>{q.category}{q.work_type && ` · ${WORK_TYPE[q.work_type]}`}</h2>
           <p className="muted" style={{ marginTop: 0 }}>
             Pedido a {formatDate(q.created_at, true)} ·{" "}
-            <Link className="link" href={`/pedido/${q.id}`} target="_blank">ver comprovativo do cliente ↗</Link>
+            <Link className="link" href={panel(`/orcamentos/${q.id}/comprovativo`)}>ver comprovativo do cliente</Link>
           </p>
 
           <dl className="summary">
@@ -71,7 +83,58 @@ export default async function AdminQuoteDetail({ params }: { params: Promise<{ i
             </>
           )}
 
-          <h3 style={{ fontSize: 15, margin: "24px 0 8px" }}>Gerir</h3>
+          <h3 style={{ fontSize: 15, margin: "24px 0 8px" }}>Orçamento</h3>
+          {job ? (
+            <p className="info-box" style={{ marginTop: 0 }}>
+              ✓ O cliente confirmou — obra iniciada:{" "}
+              <Link className="link" href={panel(`/obras/${job.id}`)}>{job.title}</Link>
+            </p>
+          ) : q.status === "orcamento_enviado" && sent.length > 0 ? (
+            <div className="info-box" style={{ marginTop: 0 }}>
+              <strong>Aguarda confirmação do cliente.</strong> Quando o cliente confirmar (na visita ou por mensagem), inicie a obra —
+              fica ligada a este orçamento e a equipa pode adicionar notas.
+              <div style={{ marginTop: 12 }}>
+                <ConfirmedForm action={startJobFromQuote} labels={{}} mode="create" submitLabel="✓ Cliente confirmou — iniciar obra" confirmTitle="O cliente confirmou o orçamento? Vai ser criada a obra.">
+                  <input type="hidden" name="quote_id" value={q.id} />
+                </ConfirmedForm>
+              </div>
+            </div>
+          ) : sheets.length === 0 ? (
+            <div className="variants">
+              <Link className="variant" href={newSheet}>
+                <strong>Fazer orçamento já</strong>
+                <span>Sem visita — o cliente já sabe o que quer.</span>
+              </Link>
+              <a className="variant" href="#gerir">
+                <strong>Marcar visita técnica</strong>
+                <span>Indique a data abaixo e notifique o cliente. Depois da visita, faça o orçamento.</span>
+              </a>
+              <Link className="variant" href={newSheet}>
+                <strong>A visita já foi feita</strong>
+                <span>Passe diretamente à folha de orçamento.</span>
+              </Link>
+            </div>
+          ) : null}
+          {sheets.length > 0 && (
+            <ul className="list" style={{ gap: 6, marginTop: 12 }}>
+              {sheets.map((sh) => (
+                <li key={sh.id} className="item">
+                  <div className="item-head">
+                    <Link className="link" href={panel(`/orcamentos/${q.id}/folha/${sh.id}`)}><strong>{sheetKind(sh)} n.º {sheetNumber(sh.number)}</strong></Link>
+                    <span className="badge">{sh.sent_at ? `Enviado a ${formatDate(sh.sent_at)}` : "Rascunho"}</span>
+                  </div>
+                  <div className="muted">{sh.items.length} linha{sh.items.length === 1 ? "" : "s"} · Total {euro(sheetTotals(sh).total)}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {sheets.length > 0 && !job && (
+            <p style={{ margin: "10px 0 0" }}>
+              <Link className="link" href={newSheet}>+ Nova folha de orçamento</Link>
+            </p>
+          )}
+
+          <h3 id="gerir" style={{ fontSize: 15, margin: "24px 0 8px" }}>Gerir</h3>
           <ConfirmedForm
             action={updateQuote}
             labels={{ status: "Estado", visit_at: "Visita técnica", admin_reply: "Mensagem / orçamento" }}
@@ -112,31 +175,36 @@ export default async function AdminQuoteDetail({ params }: { params: Promise<{ i
           <h2 style={{ marginTop: 24 }}>Morada da obra</h2>
           <p style={{ marginTop: 0 }}>
             {place || "—"}
+            {q.address_details && <><br /><span className="muted">{q.address_details}</span></>}
+            {q.lat != null && q.municipality && <><br /><span className="muted">Concelho: {q.municipality}</span></>}
             {q.outside_area && <><br /><span className="pref pref-fora">Fora da zona de visita gratuita</span></>}
           </p>
-          {place && (
-            <div className="row">
-              <a className="btn btn-fire btn-sm" href={googleMapsSearchUrl(place)} target="_blank" rel="noreferrer">Abrir no Google Maps</a>
-              <a className="btn btn-ink btn-sm" href={wazeSearchUrl(place)} target="_blank" rel="noreferrer">Navegar com Waze</a>
-            </div>
-          )}
+          {place && <Directions address={place} lat={q.lat} lng={q.lng} />}
+          <LocationRequest entity="quote_requests" id={q.id} hasLocation={q.lat != null || Boolean(place)} />
 
           <h2 style={{ marginTop: 24 }}>Obra</h2>
-          {account ? (
-            <Link className="link" href={panel(`/obras/nova?cliente=${account.id}&orcamento=${q.id}`)}>
-              + Criar obra a partir deste orçamento
-            </Link>
+          {job ? (
+            <Link className="link" href={panel(`/obras/${job.id}`)}>Abrir a obra: {job.title}</Link>
           ) : (
             <p className="muted" style={{ margin: 0 }}>
-              Para criar a obra no painel, o cliente precisa de conta.{" "}
-              {email ? (
-                <>Quando se registar com o email <strong>{email}</strong>, este pedido passa automaticamente para a conta.</>
-              ) : (
-                <>Este pedido foi feito sem email, por isso não passa sozinho para uma conta nova.</>
-              )}
+              A obra é criada quando o cliente confirmar o orçamento (botão “Cliente confirmou — iniciar obra”).
             </p>
           )}
         </section>
+      </div>
+      <div className="grid-2" style={{ marginTop: 20 }}>
+        <Comments quoteId={q.id} isAdmin />
+        {account ? (
+          <section className="panel">
+            <h2>Partilhar com a equipa</h2>
+            <p className="muted" style={{ margin: 0 }}>
+              Este pedido é de um cliente com conta. Partilhe a ficha do cliente — inclui este pedido:{" "}
+              <Link className="link" href={panel(`/clientes/${account.id}`)}>abrir ficha de {name}</Link>.
+            </p>
+          </section>
+        ) : (
+          <SharePanel quoteId={q.id} />
+        )}
       </div>
       <div style={{ marginTop: 20 }}>
         <History entityId={q.id} />

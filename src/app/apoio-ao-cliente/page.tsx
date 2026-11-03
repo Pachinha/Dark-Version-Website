@@ -2,6 +2,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import AnimateIn from "@/components/AnimateIn";
 import Footer from "@/components/Footer";
+import { CONTACT } from "@/lib/company";
 
 export const metadata = { title: "Apoio ao cliente — Lareiras Pachinha" };
 
@@ -78,11 +79,11 @@ export default function ApoioClientePage() {
       <div style={{ position: "relative", height: "62svh" }}>
         <section style={{ height: "62svh", position: "relative", overflow: "hidden", background: "#1a1108" }}>
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 60%, rgba(191,91,45,0.18) 0%, transparent 65%)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", left: "52px", maxWidth: "560px", zIndex: 1 }}>
+          <div className="hero-inline" style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", left: "52px", maxWidth: "560px", zIndex: 1 }}>
             <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "#e2a276", display: "block", marginBottom: "12px" }}>
               Apoio ao cliente
             </span>
-            <h1 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "44px", lineHeight: 1.08, fontWeight: 700, margin: "0 0 16px", color: "#f2ece2" }}>
+            <h1 className="hero-inline-title" style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "44px", lineHeight: 1.08, fontWeight: 700, margin: "0 0 16px", color: "#f2ece2" }}>
               Estamos aqui para ajudar
             </h1>
             <p style={{ fontSize: "14.5px", lineHeight: 1.65, color: "rgba(242,236,226,0.60)", margin: 0 }}>
@@ -103,8 +104,8 @@ export default function ApoioClientePage() {
 
       <main style={{ background: "#1a1108" }}>
         {/* Serviços */}
-        <section style={{ padding: "72px 52px 0" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px" }}>
+        <section className="sec" style={{ padding: "72px 52px 0" }}>
+          <div className="grid-split" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "18px" }}>
             {services.map((s, i) => (
               <AnimateIn key={s.title} delay={i * 80}>
                 <div
@@ -123,9 +124,9 @@ export default function ApoioClientePage() {
         </section>
 
         {/* Pedido de manutenção */}
-        <section style={{ padding: "72px 52px 80px" }}>
+        <section className="sec" style={{ padding: "72px 52px 80px" }}>
           <AnimateIn>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", background: "#262019", borderRadius: "20px", padding: "56px 52px", alignItems: "start" }}>
+            <div className="grid-split band" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px", background: "#262019", borderRadius: "20px", padding: "56px 52px", alignItems: "start" }}>
 
               {/* Texto */}
               <div>
@@ -140,9 +141,9 @@ export default function ApoioClientePage() {
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                   {[
-                    { icon: "📞", text: "+351 251 652 XXX" },
-                    { icon: "✉️", text: "manutencao@lareiraspachinha.pt" },
-                    { icon: "🕐", text: "Seg–Sex 9h00–18h30" },
+                    ...(CONTACT.phone ? [{ icon: "📞", text: CONTACT.phone }] : []),
+                    { icon: "✉️", text: CONTACT.maintenanceEmail },
+                    { icon: "🕐", text: CONTACT.hours },
                   ].map((item) => (
                     <div key={item.text} style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                       <span style={{ fontSize: "14px" }}>{item.icon}</span>

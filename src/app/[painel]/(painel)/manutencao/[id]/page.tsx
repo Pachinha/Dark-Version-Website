@@ -6,6 +6,7 @@ import { updateMaintenance } from "@/app/actions/admin";
 import ConfirmedForm from "@/components/admin/ConfirmedForm";
 import History from "@/components/admin/History";
 import ClientCard from "@/components/admin/ClientCard";
+import LocationRequest from "@/components/admin/LocationRequest";
 import AvailabilityTable from "@/components/admin/AvailabilityTable";
 import {
   CONTACT_PREFERENCE,
@@ -29,6 +30,10 @@ export default async function AdminMaintenanceDetail({ params }: { params: Promi
     .eq("id", id)
     .maybeSingle();
   if (!m) notFound();
+
+  // Registo de um cliente sem conta (criado pela administração): contactos e morada no próprio registo.
+  const client = m.client ?? (m.name ? { id: "", full_name: m.name, email: m.email, phone: m.phone } : null);
+  const address = m.addresses ?? (m.address ? { label: "Morada", address: m.address, details: m.address_details, lat: m.lat, lng: m.lng } : null);
 
   const { data: staff } = isAdmin
     ? await supabase.from("profiles").select("id, full_name").in("role", ["admin", "tecnico"]).order("full_name")
@@ -116,7 +121,9 @@ export default async function AdminMaintenanceDetail({ params }: { params: Promi
           </ConfirmedForm>
         </section>
 
-        <ClientCard client={m.client} address={m.addresses} linkToClient={isAdmin} />
+        <ClientCard client={client} address={address} linkToClient={isAdmin && Boolean(m.client)}>
+          {isAdmin && <LocationRequest entity="maintenance_requests" id={m.id} hasLocation={Boolean(address)} />}
+        </ClientCard>
       </div>
       <div style={{ marginTop: 20 }}>
         <History entityId={m.id} />

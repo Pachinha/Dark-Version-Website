@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { MAINTENANCE_SERVICE, formatTime, lisbonDay } from "@/lib/labels";
+import { MAINTENANCE_SERVICE, formatTime, lisbonDay, one } from "@/lib/labels";
 import { panel } from "@/lib/panel";
 
 type Event = { id: string; kind: string; label: string; start: string; days: string[]; href: string; done: boolean };
@@ -43,13 +43,13 @@ export default async function AgendaPage({
 
   let maintQuery = supabase
     .from("maintenance_requests")
-    .select("id, service, status, scheduled_for, profiles!maintenance_requests_user_id_fkey(full_name)")
+    .select("id, service, status, scheduled_for, name, profiles!maintenance_requests_user_id_fkey(full_name)")
     .in("status", ["agendado", "concluido"])
     .gte("scheduled_for", from)
     .lte("scheduled_for", to);
   let jobsQuery = supabase
     .from("jobs")
-    .select("id, title, status, scheduled_start, scheduled_end, profiles!jobs_user_id_fkey(full_name)")
+    .select("id, title, status, scheduled_start, scheduled_end, name, profiles!jobs_user_id_fkey(full_name), quote:quote_requests(name)")
     .in("status", ["agendado", "em_curso", "concluido"])
     .lte("scheduled_start", to)
     .or(`scheduled_end.gte.${from},and(scheduled_end.is.null,scheduled_start.gte.${from})`);
@@ -58,16 +58,15 @@ export default async function AgendaPage({
     jobsQuery = jobsQuery.eq("technician_id", tecnico);
   }
 
-  // Visitas técnicas para orçamento (só o administrador vê orçamentos; não têm técnico atribuído).
-  const visitsQuery =
-    profile.role === "admin" && !tecnico
-      ? supabase
-          .from("quote_requests")
-          .select("id, category, status, visit_at, name, profiles(full_name)")
-          .in("status", ["visita_marcada", "visita_feita"])
-          .gte("visit_at", from)
-          .lte("visit_at", to)
-      : Promise.resolve({ data: [] as { id: string; category: string; status: string; visit_at: string | null; name: string; profiles: unknown }[] });
+  // Visitas técnicas para orçamento: o administrador vê todas; o técnico só as que lhe
+  // foram atribuídas (a base de dados filtra).
+  let visitsQuery = supabase
+    .from("quote_requests")
+    .select("id, category, status, visit_at, name, profiles!quote_requests_user_id_fkey(full_name)")
+    .in("status", ["visita_marcada", "visita_feita"])
+    .gte("visit_at", from)
+    .lte("visit_at", to);
+  if (tecnico) visitsQuery = visitsQuery.eq("technician_id", tecnico);
 
   const [maint, jobs, staff, visits] = await Promise.all([
     maintQuery,
@@ -84,7 +83,7 @@ export default async function AgendaPage({
     ...(maint.data ?? []).map((e) => ({
       id: e.id,
       kind: e.service,
-      label: `${formatTime(e.scheduled_for)} ${MAINTENANCE_SERVICE[e.service]} — ${name(e.profiles)}`,
+      label: `${formatTime(e.scheduled_for)} ${MAINTENANCE_SERVICE[e.service]} — ${name(e.profiles) || e.name}`,
       start: e.scheduled_for!,
       days: [lisbonDay(e.scheduled_for!)],
       href: panel(`/manutencao/${e.id}`),
@@ -93,7 +92,7 @@ export default async function AgendaPage({
     ...(jobs.data ?? []).map((e) => ({
       id: e.id,
       kind: "obra",
-      label: `${formatTime(e.scheduled_start)} Obra: ${e.title} — ${name(e.profiles)}`,
+      label: `${formatTime(e.scheduled_start)} Obra: ${e.title} — ${name(e.profiles) || e.name || (one(e.quote) as { name?: string } | null)?.name || ""}`,
       start: e.scheduled_start!,
       days: daysBetween(lisbonDay(e.scheduled_start!), lisbonDay(e.scheduled_end ?? e.scheduled_start!)),
       href: panel(`/obras/${e.id}`),
@@ -105,7 +104,8 @@ export default async function AgendaPage({
       label: `${formatTime(e.visit_at)} Visita orçamento: ${e.category} — ${name(e.profiles) || e.name}`,
       start: e.visit_at!,
       days: [lisbonDay(e.visit_at!)],
-      href: panel(`/orcamentos/${e.id}`),
+      // O técnico não tem acesso à gestão de orçamentos: abre a ficha só de consulta.
+      href: panel(profile.role === "admin" ? `/orcamentos/${e.id}` : `/partilhados/pedido/${e.id}`),
       done: e.status === "visita_feita",
     })),
   ].sort((a, b) => a.start.localeCompare(b.start));

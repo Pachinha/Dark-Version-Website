@@ -1,16 +1,31 @@
 import Link from "next/link";
 import Shell from "@/components/account/Shell";
 import { getCurrentUser } from "@/lib/auth";
-import QuoteWizard from "./QuoteWizard";
+import { FUEL, QUOTE_PRODUCTS } from "@/lib/labels";
+import { createClient } from "@/lib/supabase/server";
+import QuoteWizard, { type SavedAddress } from "./QuoteWizard";
 
 export const metadata = {
   title: "Pedir orçamento — Lareiras Pachinha",
   description: "Peça o seu orçamento em 2 minutos. Visita técnica gratuita e sem compromisso no Alto Minho.",
 };
 
-export default async function PedirOrcamentoPage() {
+export default async function PedirOrcamentoPage({ searchParams }: { searchParams: Promise<{ tipo?: string; combustivel?: string }> }) {
+  const { tipo, combustivel } = await searchParams;
   const current = await getCurrentUser();
   const profile = current?.profile;
+
+  // Quem tem conta pode usar uma das moradas já guardadas (verificadas) na área de cliente.
+  let savedAddresses: SavedAddress[] = [];
+  if (current) {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("addresses")
+      .select("id, label, address, details, postcode, locality, lat, lng")
+      .eq("user_id", current.user.id)
+      .order("created_at");
+    savedAddresses = data ?? [];
+  }
 
   return (
     <Shell signedIn={!!current}>
@@ -35,6 +50,12 @@ export default async function PedirOrcamentoPage() {
         <section className="panel">
           <QuoteWizard
             signedIn={!!current}
+            savedAddresses={savedAddresses}
+            // Vindo de um produto do catálogo, o tipo e o combustível já vêm escolhidos.
+            initial={{
+              category: tipo && tipo in QUOTE_PRODUCTS ? tipo : "",
+              fuel: combustivel && combustivel in FUEL ? combustivel : "",
+            }}
             contact={{ name: profile?.full_name ?? "", phone: profile?.phone ?? "", email: profile?.email ?? "" }}
           />
         </section>

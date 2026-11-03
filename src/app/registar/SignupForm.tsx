@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { signup } from "@/app/actions/auth";
 import FormMessage from "@/components/account/FormMessage";
+import PhoneInput from "@/components/PhoneInput";
 
 export default function SignupForm() {
   const [state, action, pending] = useActionState(signup, undefined);
@@ -19,10 +20,10 @@ export default function SignupForm() {
         Email
         <input name="email" type="email" autoComplete="email" required />
       </label>
-      <label className="field">
+      <div className="field">
         Telefone <span className="hint">Opcional — para combinarmos visitas técnicas</span>
-        <input name="phone" type="tel" autoComplete="tel" />
-      </label>
+        <PhoneInput name="phone" />
+      </div>
       <label className="field">
         Palavra-passe <span className="hint">Mínimo 8 caracteres</span>
         <input name="password" type="password" autoComplete="new-password" required minLength={8} />

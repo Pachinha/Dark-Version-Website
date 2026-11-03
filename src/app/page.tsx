@@ -3,8 +3,7 @@ import Hero from "@/components/Hero";
 import Categories from "@/components/Categories";
 import Brands from "@/components/Brands";
 import ProcessBand from "@/components/ProcessBand";
-import FeaturedProducts from "@/components/FeaturedProducts";
-import Testimonials from "@/components/Testimonials";
+import ObrasPreview from "@/components/ObrasPreview";
 import ShowroomBand from "@/components/ShowroomBand";
 import Footer from "@/components/Footer";
 
@@ -12,7 +11,7 @@ export default function HomePage() {
   return (
     <>
       {/* First screen: image fills 100svh, navbar floats transparently on top */}
-      <div style={{ position: "relative", height: "100svh" }}>
+      <div style={{ position: "relative" }}>
         <Hero />
         <Navbar />
       </div>
@@ -21,9 +20,8 @@ export default function HomePage() {
       <main>
         <Categories />
         <Brands />
+        <ObrasPreview />
         <ProcessBand />
-        <FeaturedProducts />
-        <Testimonials />
         <ShowroomBand />
       </main>
       <Footer />

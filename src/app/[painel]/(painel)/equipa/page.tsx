@@ -26,7 +26,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const supabase = await createClient();
 
   const [{ data: staff }, { data: found }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, email, role").in("role", ["admin", "tecnico"]).order("role").order("full_name"),
+    supabase.from("profiles").select("id, full_name, email, role").in("role", ["admin", "tecnico", "colaborador"]).order("role").order("full_name"),
     email
       ? supabase.from("profiles").select("id, full_name, email, role").eq("email", email.trim().toLowerCase()).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -55,11 +55,19 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
       </section>
 
       <section className="panel">
-        <h2>Adicionar técnico ou administrador</h2>
+        <h2>Adicionar colaborador, técnico ou administrador</h2>
         <p className="muted" style={{ marginTop: 0 }}>
           1. A pessoa cria conta no site em <strong>/registar</strong>.<br />
-          2. Pesquise aqui o email dela e mude o papel para Técnico.<br />
-          O técnico vê apenas as limpezas e obras que lhe forem atribuídas.
+          2. Pesquise aqui o email dela e escolha o papel.<br />
+          3. No primeiro acesso ao painel, a pessoa ativa a verificação em dois passos (obrigatória).
+        </p>
+        <ul className="muted" style={{ marginTop: 0, paddingLeft: 18, lineHeight: 1.6 }}>
+          <li><strong>Colaborador</strong> — só consulta os clientes que partilhar com ele (ficha, morada com Maps/Waze) e pode deixar comentários. Não altera nada.</li>
+          <li><strong>Técnico</strong> — vê e atualiza as limpezas e obras que lhe forem atribuídas; também pode receber partilhas.</li>
+          <li><strong>Administrador</strong> — acesso total.</li>
+        </ul>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Para partilhar um cliente: abra a ficha do cliente (ou o pedido de orçamento) e use <strong>Partilhar com a equipa</strong>.
         </p>
         <form className="row" style={{ marginBottom: 16 }}>
           <label className="field" style={{ flex: 1, minWidth: 200 }}>

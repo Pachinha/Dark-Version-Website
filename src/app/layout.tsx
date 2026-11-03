@@ -5,7 +5,7 @@ import CookieConsent from "@/components/CookieConsent";
 export const metadata: Metadata = {
   title: "Lareiras Pachinha — Aquecimento com quem sabe, desde 1992",
   description:
-    "Lareiras, recuperadores e salamandras a lenha, gás, pellets e bioetanol — com aconselhamento técnico e instalação incluída, em Monção.",
+    "Lareiras, recuperadores e salamandras a lenha, pellets, gás, elétricas e bioetanol — com aconselhamento técnico e instalação incluída, em Monção.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

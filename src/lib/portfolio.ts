@@ -1,6 +1,6 @@
 // Portfólio — obras realizadas pela Pachinha.
 // Para acrescentar uma obra: guardar a foto em /public/images/obras/ e juntar uma entrada aqui.
-// As entradas abaixo usam fotos provisórias até chegarem as fotos reais (ex.: obra do convento).
+// As entradas abaixo usam fotos provisórias (Unsplash, ver /images/orcamento/CREDITOS.md) até chegarem as fotos reais (ex.: obra do convento).
 export type Project = {
   title: string;
   type: "Lareiras" | "Recuperadores" | "Salamandras" | "Fogões" | "Churrasqueiras";
@@ -10,10 +10,10 @@ export type Project = {
 };
 
 export const PROJECTS: Project[] = [
-  { title: "Lareira em sala de estar", type: "Lareiras", img: "/images/lareira.jpg" },
-  { title: "Recuperador a lenha em moradia", type: "Recuperadores", img: "/images/recuperador.jpg" },
-  { title: "Salamandra em casa de campo", type: "Salamandras", img: "/images/salamandra.jpg" },
+  { title: "Lareira em sala de estar", type: "Lareiras", img: "/images/orcamento/lareira.jpg" },
+  { title: "Recuperador a lenha em moradia", type: "Recuperadores", img: "/images/orcamento/recuperador.jpg" },
+  { title: "Salamandra em casa de campo", type: "Salamandras", img: "/images/orcamento/salamandra.jpg" },
   { title: "Lareira de design", type: "Lareiras", img: "/images/hero.png" },
-  { title: "Fogão de cozinha a lenha", type: "Fogões", img: "/images/fogao.jpg" },
-  { title: "Churrasqueira de exterior", type: "Churrasqueiras", img: "/images/churrasqueira.jpg" },
+  { title: "Fogão de cozinha a lenha", type: "Fogões", img: "/images/orcamento/fogao.jpg" },
+  { title: "Churrasqueira de exterior", type: "Churrasqueiras", img: "/images/orcamento/churrasqueira.jpg" },
 ];

@@ -2,8 +2,8 @@ export const QUOTE_STATUS: Record<string, string> = {
   novo: "Pedido recebido",
   visita_marcada: "Visita marcada",
   visita_feita: "Visita feita",
-  orcamento_enviado: "Orçamento enviado",
-  aceite: "Aceite",
+  orcamento_enviado: "Orçamento enviado · aguarda confirmação",
+  em_obra: "Em obra",
   recusado: "Recusado",
   cancelado: "Cancelado",
 };
@@ -121,8 +121,15 @@ export const JOB_STATUS: Record<string, string> = {
   cancelado: "Cancelada",
 };
 
+export const JOB_NOTE_KIND: Record<string, string> = {
+  material: "Material adicionado",
+  alteracao: "Alteração ao trabalho",
+  nota: "Nota",
+};
+
 export const ROLE_LABEL: Record<string, string> = {
   client: "Cliente",
+  colaborador: "Colaborador (só consulta)",
   tecnico: "Técnico",
   admin: "Administrador",
 };

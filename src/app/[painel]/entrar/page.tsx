@@ -1,8 +1,8 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Shell from "@/components/account/Shell";
 import LoginForm from "@/app/entrar/LoginForm";
 import { MfaEnroll, MfaVerifyForm } from "@/components/account/MfaForms";
-import { getCurrentUser, isStaff } from "@/lib/auth";
+import { getCurrentUser, isPanelMember } from "@/lib/auth";
 import { panel } from "@/lib/panel";
 
 export const metadata = { title: "Acesso da equipa", robots: { index: false, follow: false } };
@@ -12,11 +12,11 @@ export default async function StaffLoginPage() {
   const current = await getCurrentUser();
   const home = panel();
 
-  if (current && !isStaff(current.profile)) notFound();
+  if (current && !isPanelMember(current.profile)) redirect(panel("/sem-acesso"));
   if (current?.mfaVerified) redirect(home);
 
   return (
-    <Shell signedIn={Boolean(current)}>
+    <Shell signedIn={Boolean(current)} panelHome={home}>
       <div className="panel auth-card">
         <span className="eyebrow">Acesso restrito · Equipa</span>
         {!current && (

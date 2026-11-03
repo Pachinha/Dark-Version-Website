@@ -1,21 +1,14 @@
-import CategoryLayout from "@/components/CategoryLayout";
+import CategoryPage, { type CategorySearchParams } from "@/components/CategoryPage";
 
 export const metadata = { title: "Fogões — Lareiras Pachinha" };
 
-const products = [
-  { brand: "Godin", name: "Fogão de cozinha a lenha", fuel: "Lenha", img: "/images/fogao.jpg", badge: "Importador" },
-  { brand: "La Nordica", name: "Fogão de cozinha a lenha", fuel: "Lenha", img: "/images/fogao.jpg" },
-  { brand: "Bronpi", name: "Fogão de cozinha a lenha", fuel: "Lenha", img: "/images/fogao.jpg" },
-];
-
-export default function FogoesPage() {
+export default function FogoesPage({ searchParams }: { searchParams: CategorySearchParams }) {
   return (
-    <CategoryLayout
-      category="Fogões"
+    <CategoryPage
+      slug="fogoes"
       title="Fogões que aquecem e cozinham."
-      subtitle="Tradição e modernidade numa só peça. Os nossos fogões a lenha e a pellets são ideais para quem quer eficiência sem abdicar do charme."
-      heroImg="/images/fogao.jpg"
-      products={products}
+      subtitle="Fogões de cozinha a lenha, entre a tradição e o design atual."
+      searchParams={searchParams}
     />
   );
 }

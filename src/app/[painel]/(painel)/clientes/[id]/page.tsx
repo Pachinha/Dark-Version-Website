@@ -4,8 +4,10 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createOrder, updateOrderStatus } from "@/app/actions/admin";
 import ActionForm from "@/components/account/ActionForm";
+import Comments from "@/components/admin/Comments";
+import Directions from "@/components/admin/Directions";
+import SharePanel from "@/components/admin/SharePanel";
 import { JOB_STATUS, MAINTENANCE_SERVICE, MAINTENANCE_STATUS, ORDER_STATUS, QUOTE_STATUS, formatDate } from "@/lib/labels";
-import { googleMapsUrl, wazeUrl } from "@/lib/geo";
 import { panel } from "@/lib/panel";
 
 export default async function AdminClientPage({ params }: { params: Promise<{ id: string }> }) {
@@ -93,10 +95,7 @@ export default async function AdminClientPage({ params }: { params: Promise<{ id
                   <strong>{a.label}</strong> <span className="badge">{a.source === "gps" ? "GPS" : "Pesquisa"}</span>
                   <div>{a.address}</div>
                   {a.details && <div className="muted">{a.details}</div>}
-                  <div className="row" style={{ marginTop: 6 }}>
-                    <a className="link" href={googleMapsUrl(a.lat, a.lng)} target="_blank" rel="noreferrer">Google Maps ↗</a>
-                    <a className="link" href={wazeUrl(a.lat, a.lng)} target="_blank" rel="noreferrer">Waze ↗</a>
-                  </div>
+                  <Directions address={a.address} lat={a.lat} lng={a.lng} compact />
                 </li>
               ))}
             </ul>
@@ -125,6 +124,11 @@ export default async function AdminClientPage({ params }: { params: Promise<{ id
             ))}
           </ul>
         </section>
+      </div>
+
+      <div className="grid-2" style={{ marginTop: 20 }}>
+        <Comments clientId={id} isAdmin />
+        <SharePanel clientId={id} />
       </div>
     </>
   );

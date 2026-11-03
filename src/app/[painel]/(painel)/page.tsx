@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { requirePanel, requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { MAINTENANCE_SERVICE, formatDate, formatTime, lisbonDay, one } from "@/lib/labels";
 import { googleMapsSearchUrl, googleMapsUrl, wazeSearchUrl, wazeUrl } from "@/lib/geo";
 import { panel } from "@/lib/panel";
+import Attention from "@/components/admin/Attention";
 
 type Item = {
   id: string;
@@ -17,6 +19,8 @@ type Item = {
 };
 
 export default async function AdminHome() {
+  const { profile: me } = await requirePanel();
+  if (me.role === "colaborador") redirect(panel("/partilhados"));
   const { profile } = await requireStaff();
   const isAdmin = profile.role === "admin";
   const supabase = await createClient();
@@ -35,27 +39,26 @@ export default async function AdminHome() {
     count("jobs", "status", "por_agendar"),
     supabase
       .from("maintenance_requests")
-      .select("id, service, scheduled_for, profiles!maintenance_requests_user_id_fkey(full_name, phone), addresses(address, details, lat, lng)")
+      .select("id, service, scheduled_for, name, phone, address, address_details, lat, lng, profiles!maintenance_requests_user_id_fkey(full_name, phone), addresses(address, details, lat, lng)")
       .eq("status", "agendado")
       .gte("scheduled_for", dayStart.toISOString())
       .lte("scheduled_for", weekEnd.toISOString())
       .order("scheduled_for"),
     supabase
       .from("jobs")
-      .select("id, title, scheduled_start, profiles!jobs_user_id_fkey(full_name, phone), addresses(address, details, lat, lng)")
+      .select("id, title, scheduled_start, name, phone, address, address_details, lat, lng, profiles!jobs_user_id_fkey(full_name, phone), addresses(address, details, lat, lng), quote:quote_requests(name, phone, address, address_details, lat, lng)")
       .in("status", ["agendado", "em_curso"])
       .gte("scheduled_start", dayStart.toISOString())
       .lte("scheduled_start", weekEnd.toISOString())
       .order("scheduled_start"),
-    isAdmin
-      ? supabase
-          .from("quote_requests")
-          .select("id, category, visit_at, name, phone, address, municipality, profiles(full_name, phone)")
-          .eq("status", "visita_marcada")
-          .gte("visit_at", dayStart.toISOString())
-          .lte("visit_at", weekEnd.toISOString())
-          .order("visit_at")
-      : Promise.resolve({ data: [] }),
+    // Visitas de orçamento: o técnico só recebe as que lhe estão atribuídas (base de dados).
+    supabase
+      .from("quote_requests")
+      .select("id, category, visit_at, name, phone, address, address_details, municipality, lat, lng, profiles!quote_requests_user_id_fkey(full_name, phone)")
+      .eq("status", "visita_marcada")
+      .gte("visit_at", dayStart.toISOString())
+      .lte("visit_at", weekEnd.toISOString())
+      .order("visit_at"),
   ]);
 
   const items: Item[] = [
@@ -64,9 +67,10 @@ export default async function AdminHome() {
       kind: m.service,
       title: MAINTENANCE_SERVICE[m.service],
       when: m.scheduled_for!,
-      client: one(m.profiles)?.full_name ?? "",
-      phone: one(m.profiles)?.phone ?? "",
-      address: one(m.addresses),
+      // Cliente sem conta (registado pela administração): dados no próprio registo.
+      client: one(m.profiles)?.full_name || m.name || "",
+      phone: one(m.profiles)?.phone || m.phone || "",
+      address: one(m.addresses) ?? (m.address ? { address: m.address, details: m.address_details ?? "", lat: m.lat ?? undefined, lng: m.lng ?? undefined } : null),
       href: panel(`/manutencao/${m.id}`),
     })),
     ...(jobs.data ?? []).map((j) => ({
@@ -74,9 +78,14 @@ export default async function AdminHome() {
       kind: "obra",
       title: `Obra: ${j.title}`,
       when: j.scheduled_start!,
-      client: one(j.profiles)?.full_name ?? "",
-      phone: one(j.profiles)?.phone ?? "",
-      address: one(j.addresses),
+      // Obra sem conta de cliente: contactos e morada do pedido de orçamento.
+      client: one(j.profiles)?.full_name || j.name || one(j.quote)?.name || "",
+      phone: one(j.profiles)?.phone || j.phone || one(j.quote)?.phone || "",
+      address: one(j.addresses)
+        ?? (j.address ? { address: j.address, details: j.address_details ?? "", lat: j.lat ?? undefined, lng: j.lng ?? undefined } : null)
+        ?? (one(j.quote)?.address
+        ? { address: one(j.quote)!.address, details: one(j.quote)!.address_details ?? "", lat: one(j.quote)!.lat, lng: one(j.quote)!.lng }
+        : null),
       href: panel(`/obras/${j.id}`),
     })),
     ...(visits.data ?? []).map((v) => ({
@@ -86,8 +95,10 @@ export default async function AdminHome() {
       when: v.visit_at!,
       client: one(v.profiles)?.full_name || v.name,
       phone: v.phone || one(v.profiles)?.phone || "",
-      address: { address: [v.address, v.municipality].filter(Boolean).join(", "), details: "" },
-      href: panel(`/orcamentos/${v.id}`),
+      address: v.lat != null
+        ? { address: v.address, details: v.address_details ?? "", lat: v.lat, lng: v.lng }
+        : { address: [v.address, v.municipality].filter(Boolean).join(", "), details: "" },
+      href: panel(isAdmin ? `/orcamentos/${v.id}` : `/partilhados/pedido/${v.id}`),
     })),
   ].sort((a, b) => a.when.localeCompare(b.when));
 
@@ -103,6 +114,10 @@ export default async function AdminHome() {
         {isAdmin && <Stat value={newQuotes.count ?? 0} label="Orçamentos em espera" href={panel("/orcamentos")} alert />}
         <Stat value={pendingMaint.count ?? 0} label="Limpezas por agendar" href={panel("/manutencao?estado=pendente")} alert />
         <Stat value={unscheduledJobs.count ?? 0} label="Obras por agendar" href={panel("/obras?estado=por_agendar")} alert />
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <Attention isAdmin={isAdmin} />
       </div>
 
       <div className="grid-2">
