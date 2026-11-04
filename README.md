@@ -395,10 +395,10 @@ Os **nomes** estão aqui; os **valores** nunca. O modelo comentado é o `.env.ex
 
 **No GitHub (Actions):** as cópias de segurança precisam de:
 
-- `SUPABASE_DB_URL`: ligação Postgres com a palavra-passe da BD.
-- `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` e `R2_ENDPOINT`.
+- `SUPABASE_DB_PASSWORD`: palavra-passe da BD (configurado em 2026-11-04).
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` e `R2_BUCKET`: destino na Cloudflare R2.
 - `BACKUP_PASSPHRASE`: chave de cifra.
-- Para o Storage: as chaves Supabase.
+- `SUPABASE_SECRET_KEY`: para descarregar os ficheiros do Storage.
 
 **Palavra-passe da base de dados:**
 
@@ -505,42 +505,79 @@ produção até à 015):
 
 ## 11. Cópias de segurança e reposição
 
-> **Estado:** desenhado, **ainda por construir** (falta a palavra-passe da BD e a conta Cloudflare).
-> Atualizar esta secção quando estiver ativo.
+> **Estado (2026-11-04):** construído em `.github/workflows/backup.yml` + `scripts/backup-storage.mjs`.
+> Enquanto a Cloudflare R2 não estiver configurada, cada cópia fica guardada no próprio GitHub
+> (Actions → execução → *Artifacts*) durante 30 dias. Quando os segredos `R2_*` existirem, passa
+> automaticamente para a R2. Atualizar esta nota quando isso acontecer.
 
-**O que é copiado, todas as noites (~03:00 hora de Lisboa):**
+**O que é copiado, todas as noites (02:00 UTC = 02:00/03:00 em Lisboa):**
 
-1. **Base de dados completa:** `pg_dump` (estrutura + dados, incluindo as contas de utilizador do
-   schema `auth`).
-2. **Ficheiros:** os buckets `quote-photos` e `catalog`.
+1. **Base de dados**, com o método oficial do Supabase (`supabase db dump`), em 3 ficheiros:
+   - `roles.sql`: papéis;
+   - `schema.sql`: estrutura (tabelas, funções, políticas RLS);
+   - `data.sql`: dados, incluindo as contas de utilizador do schema `auth`.
+2. **Ficheiros:** todos os buckets do Storage (`quote-photos`, `catalog`), mais `buckets.json`
+   com a configuração de cada bucket.
 
 **Como:**
 
-- Um workflow do **GitHub Actions** (`.github/workflows/backup.yml`) liga-se ao Supabase, faz a cópia,
-  comprime-a e **cifra-a** (AES-256, com a `BACKUP_PASSPHRASE`).
-- Depois envia-a para um bucket **privado** do **Cloudflare R2**.
+- Os servidores do GitHub ligam-se ao Supabase pelo *session pooler* (porta 5432), porque não têm
+  IPv6.
+- Juntam tudo num `.tar.gz` e **cifram-no** com GPG/AES-256, usando a `BACKUP_PASSPHRASE`.
+- O ficheiro final chama-se `pachinha-AAAA-MM-DD.tar.gz.gpg` e vai para:
+  - a pasta `diarias/` do bucket R2;
+  - e também a `mensais/`, no dia 1 de cada mês.
 - Fica num fornecedor diferente do Supabase: se um falhar, o outro tem os dados.
+- Também se pode correr à mão: GitHub → **Actions** → *Cópia de segurança* → **Run workflow**.
 
-**Retenção** (apagado automaticamente, para não crescer sem controlo):
+**Segredos necessários:** ver o topo de `.github/workflows/backup.yml`. Se faltar algum, a execução
+falha com a mensagem "Faltam segredos: …".
 
-- **30 cópias diárias** (último mês).
-- **12 cópias mensais** (a do dia 1 de cada mês, último ano).
+**Retenção** (para não crescer sem controlo): regras de ciclo de vida no bucket R2, configuradas
+uma vez na Cloudflare (R2 → bucket → Settings → Object lifecycle rules):
 
-**Se a cópia falhar:** o GitHub envia email ao dono do repositório e a execução aparece a vermelho
-em *Actions*. Verifique uma vez por mês que as últimas execuções estão a verde.
+- prefixo `diarias/`: apagar após **30 dias**;
+- prefixo `mensais/`: apagar após **365 dias**.
+
+**Tamanho hoje:** a base de dados tem 13 MB e há 2 fotos. Cada cópia comprimida fica bem abaixo
+de 10 MB.
+
+**Se a cópia falhar:** o GitHub envia email e a execução aparece a vermelho em *Actions*.
+Verifique uma vez por mês que as últimas execuções estão a verde.
 
 **Repor (guia para o dia em que for preciso):**
 
-1. Descarregar a cópia pretendida do R2: Cloudflare → R2 → bucket de cópias.
-2. Decifrar com a chave de cifra, guardada pelo programador e pela Sandra.
-3. Restaurar:
-   - para o mesmo projeto Supabase, ou para um novo;
-   - com `psql`/`pg_restore` usando a ligação da BD.
-4. Voltar a carregar os ficheiros para os buckets.
-5. Se for um projeto novo, atualizar `NEXT_PUBLIC_SUPABASE_URL` e as chaves na Cloudflare e publicar.
+1. **Descarregar** a cópia pretendida, da R2 (Cloudflare → R2 → bucket) ou do *Artifact* no GitHub.
+   Um *Artifact* vem dentro de um `.zip`; extraia-o primeiro.
+2. **Decifrar e extrair** (Linux/macOS/Git Bash; pede a chave de cifra):
+   ```bash
+   gpg -d pachinha-AAAA-MM-DD.tar.gz.gpg | tar -xzf -
+   ```
+   Fica uma pasta `backup/` com `db/` e `storage/`.
+3. **Restaurar a base de dados.** Pode ser no mesmo projeto ou num projeto Supabase novo. Com
+   `psql` e a ligação da BD (Supabase → Connect → *Session pooler*):
+   ```bash
+   psql "$DB_URL" -f backup/db/roles.sql
+   psql "$DB_URL" -f backup/db/schema.sql
+   psql "$DB_URL" -c "SET session_replication_role = replica" -f backup/db/data.sql
+   ```
+   - Guia oficial: https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore
+   - Num projeto **existente** com dados, os conflitos são esperados. Restaurar de preferência
+     num projeto novo e depois apontar o site para ele.
+4. **Restaurar os ficheiros:**
+   - Os buckets são criados pelas migrações.
+   - Os ficheiros de `backup/storage/<bucket>/…` voltam a ser carregados com o mesmo caminho.
+     Pode ser no painel do Supabase (Storage → Upload folder) ou por script.
+5. **Se for um projeto novo:**
+   - atualizar `NEXT_PUBLIC_SUPABASE_URL` e as chaves na Cloudflare, e publicar;
+   - no workflow, atualizar `SUPABASE_REF` e `SUPABASE_POOLER_HOST`;
+   - no GitHub, atualizar os segredos `SUPABASE_*`.
 
 **Testar a reposição uma vez por ano** num projeto Supabase de teste. Uma cópia que nunca foi
 testada não é uma cópia.
+
+**Cópia manual dos ficheiros no computador:** `node scripts/backup-storage.mjs pasta-destino`
+(lê as chaves do `.env.local`).
 
 ---
 
@@ -667,7 +704,7 @@ wrangler.jsonc, open-next.config.ts   configuração Cloudflare
    - o subdomínio de teste `novo.pachinha.com`.
 4. [ ] Testes completos no endereço de teste, em telemóvel, tablet e computador.
 5. [ ] Configurar o SMTP do Supabase Auth com o Resend.
-6. [ ] Cópias de segurança: repor a palavra-passe da BD → segredos no GitHub → workflow →
+6. [~] Cópias de segurança: workflow feito e palavra-passe da BD no GitHub → faltam `SUPABASE_SECRET_KEY`, `BACKUP_PASSPHRASE` e a R2 →
    **testar uma reposição**.
 7. [ ] Publicação automática a partir do GitHub.
 8. [ ] Juntar `feature/cloudflare` ao `master`.
