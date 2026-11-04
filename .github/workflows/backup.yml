@@ -1,0 +1,111 @@
+# Cópia de segurança diária: base de dados (Supabase Postgres) + ficheiros (Supabase Storage),
+# comprimida e cifrada (AES-256). Explicação completa: README.md, secção 11.
+#
+# Segredos (repositório → Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_PASSWORD   palavra-passe da base de dados (Supabase → Project Settings → Database)
+#   SUPABASE_SECRET_KEY    chave secreta da API (para descarregar os ficheiros do Storage)
+#   BACKUP_PASSPHRASE      chave de cifra — guardada também fora do GitHub (sem ela a cópia não abre)
+#   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET
+#                          destino na Cloudflare R2. Enquanto não existirem, a cópia fica
+#                          como "artifact" desta execução no GitHub durante 30 dias.
+name: Cópia de segurança
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # 02:00 UTC = 02:00/03:00 em Lisboa
+  workflow_dispatch:
+
+concurrency: backup
+
+# Identificadores do projeto Supabase — não são segredos (o URL já é público no site).
+env:
+  SUPABASE_REF: evmonnjlpgzpvnmgypfo
+  SUPABASE_POOLER_HOST: aws-1-eu-central-1.pooler.supabase.com
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verificar segredos
+        env:
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          missing=""
+          [ -n "$DB_PASSWORD" ] || missing="$missing SUPABASE_DB_PASSWORD"
+          [ -n "$SECRET_KEY" ] || missing="$missing SUPABASE_SECRET_KEY"
+          [ -n "$PASSPHRASE" ] || missing="$missing BACKUP_PASSPHRASE"
+          if [ -n "$missing" ]; then echo "::error::Faltam segredos:$missing"; exit 1; fi
+
+      - name: Base de dados (pg_dump)
+        env:
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          # Ligação pelo "session pooler" (porta 5432): os servidores do GitHub não têm IPv6.
+          PASS=$(node -e 'process.stdout.write(encodeURIComponent(process.env.DB_PASSWORD))')
+          echo "::add-mask::$PASS"
+          DB_URL="postgresql://postgres.${SUPABASE_REF}:${PASS}@${SUPABASE_POOLER_HOST}:5432/postgres"
+          mkdir -p backup/db
+          supabase db dump --db-url "$DB_URL" -f backup/db/roles.sql --role-only
+          supabase db dump --db-url "$DB_URL" -f backup/db/schema.sql
+          supabase db dump --db-url "$DB_URL" -f backup/db/data.sql --use-copy --data-only
+          ls -la backup/db
+
+      - name: Ficheiros (Storage)
+        env:
+          SUPABASE_URL: https://${{ env.SUPABASE_REF }}.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/backup-storage.mjs backup/storage
+
+      - name: Comprimir e cifrar
+        env:
+          PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          NAME="pachinha-$(date -u +%Y-%m-%d).tar.gz.gpg"
+          echo "NAME=$NAME" >> "$GITHUB_ENV"
+          date -u +%Y-%m-%dT%H:%M:%SZ > backup/CRIADO_EM.txt
+          tar -czf - backup | gpg --batch --yes --symmetric --cipher-algo AES256 \
+            --passphrase-fd 3 -o "$NAME" 3<<< "$PASSPHRASE"
+          rm -rf backup
+          ls -la "$NAME"
+
+      - name: Enviar para a Cloudflare R2
+        id: r2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          if [ -z "$R2_ACCOUNT_ID" ] || [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$R2_BUCKET" ]; then
+            echo "::warning::R2 ainda não configurado — a cópia fica como artifact no GitHub (30 dias)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          aws s3 cp "$NAME" "s3://${R2_BUCKET}/diarias/$NAME" --endpoint-url "$ENDPOINT"
+          # No dia 1 de cada mês guarda também uma cópia mensal (retenção mais longa).
+          if [ "$(date -u +%d)" = "01" ]; then
+            aws s3 cp "$NAME" "s3://${R2_BUCKET}/mensais/$NAME" --endpoint-url "$ENDPOINT"
+          fi
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+
+      - name: Guardar no GitHub (enquanto não há R2)
+        if: steps.r2.outputs.configured == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NAME }}
+          path: ${{ env.NAME }}
+          retention-days: 30
+          compression-level: 0
