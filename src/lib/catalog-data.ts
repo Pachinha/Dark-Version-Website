@@ -20,8 +20,6 @@ export type BrandRow = {
   logo_height: number;
   imported: boolean;
   in_ticker: boolean;
-  catalog_url: string;
-  catalog_label: string;
   active: boolean;
   sort: number;
   translations: Translations;
@@ -60,7 +58,7 @@ export type ProductRow = {
   translations: Translations;
 };
 
-export const BRAND_COLUMNS = "id, slug, name, origin, description, website, logo_url, logo_height, imported, in_ticker, catalog_url, catalog_label, active, sort, translations";
+export const BRAND_COLUMNS = "id, slug, name, origin, description, website, logo_url, logo_height, imported, in_ticker, active, sort, translations";
 export const CATEGORY_COLUMNS = "id, slug, name, title, subtitle, image_url, active, sort, translations";
 export const PRODUCT_COLUMNS =
   "id, slug, brand_id, category_id, name, fuel, description, power_kw, heated_area_m2, efficiency_pct, energy_class, dimensions, badge, outlet, photos, active, sort, translations";
@@ -81,8 +79,6 @@ export type Brand = {
   logoHeight: number;
   imported: boolean;
   inTicker: boolean;
-  catalogUrl: string;
-  catalogLabel: string;
 };
 
 export type Category = { slug: string; name: string; title: string; subtitle: string; image: string; href: string };
@@ -115,8 +111,6 @@ const toBrand = (b: BrandRow, l: Locale): Brand => ({
   logoHeight: b.logo_height,
   imported: b.imported,
   inTicker: b.in_ticker,
-  catalogUrl: b.catalog_url,
-  catalogLabel: b.catalog_label,
 });
 
 const toCategory = (c: CategoryRow, l: Locale): Category => ({

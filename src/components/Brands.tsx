@@ -40,17 +40,6 @@ export default async function Brands() {
                 {brand.name}
               </span>
               <p style={{ fontSize: "14px", lineHeight: 1.6, color: "rgba(242,236,226,0.6)", margin: "0 0 8px" }}>{brand.description}</p>
-              {brand.catalogUrl && (
-                <a
-                  href={brand.catalogUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-primary"
-                  style={{ alignSelf: "flex-start", marginTop: "auto", background: "#bf5b2d", color: "#fff", fontSize: "13.5px", fontWeight: 600, padding: "11px 20px", borderRadius: "999px", textDecoration: "none" }}
-                >
-                  {t.home.seeCatalog}{brand.catalogLabel && ` ${brand.catalogLabel}`} →
-                </a>
-              )}
             </div>
           </AnimateIn>
         ))}

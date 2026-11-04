@@ -17,8 +17,9 @@
    `supabase/012_registos_pela_administracao.sql` (a administração regista limpezas, visitas e
    obras para clientes sem conta; técnico nas visitas),
    `supabase/013_pedido_localizacao.sql` (link para o cliente partilhar a localização),
-   `supabase/014_catalogo.sql` (marcas, categorias e produtos geridos no painel) e
-   `supabase/014_catalogo_dados.sql` (catálogo inicial — só numa base vazia).
+   `supabase/014_catalogo.sql` (marcas, categorias e produtos geridos no painel),
+   `supabase/014_catalogo_dados.sql` (catálogo inicial — só numa base vazia) e
+   `supabase/015_sem_catalogos_pdf.sql` (retira os catálogos em PDF: só produtos).
 3. **Chaves:** Project Settings → API Keys. Copie `.env.example` para `.env.local` e preencha
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SECRET_KEY`.
    Coloque as mesmas variáveis no alojamento (ex.: Vercel → Settings → Environment Variables).

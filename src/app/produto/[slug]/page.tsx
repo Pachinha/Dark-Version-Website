@@ -105,11 +105,6 @@ export default async function ProdutoPage({ params }: Params) {
                 </Link>
                 <span style={{ fontSize: "13px", color: "rgba(242,236,226,0.5)" }}>{tp.ctaLead}</span>
                 <div className="row" style={{ gap: "18px", marginTop: "6px" }}>
-                  {product.brand.catalogUrl && (
-                    <a href={product.brand.catalogUrl} target="_blank" rel="noreferrer" style={{ fontSize: "13.5px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
-                      {t.home.seeCatalog}{product.brand.catalogLabel && ` ${product.brand.catalogLabel}`} →
-                    </a>
-                  )}
                   {product.brand.website && (
                     <a href={product.brand.website} target="_blank" rel="noreferrer" style={{ fontSize: "13.5px", fontWeight: 600, color: "rgba(242,236,226,0.6)", textDecoration: "none" }}>
                       {tp.brandSite}

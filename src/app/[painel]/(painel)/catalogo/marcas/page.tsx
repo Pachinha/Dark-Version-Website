@@ -2,14 +2,14 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { panel } from "@/lib/panel";
 
-type Row = { id: string; name: string; logo_url: string; logo_height: number; active: boolean; in_ticker: boolean; imported: boolean; catalog_url: string; catalog_products: { count: number }[] };
+type Row = { id: string; name: string; logo_url: string; logo_height: number; active: boolean; in_ticker: boolean; imported: boolean; catalog_products: { count: number }[] };
 
 export default async function CatalogBrandsPage({ searchParams }: { searchParams: Promise<{ apagado?: string }> }) {
   const { apagado } = await searchParams;
   const supabase = await createClient();
   const { data: brands } = await supabase
     .from("catalog_brands")
-    .select("id, name, logo_url, logo_height, active, in_ticker, imported, catalog_url, catalog_products(count)")
+    .select("id, name, logo_url, logo_height, active, in_ticker, imported, catalog_products(count)")
     .order("sort")
     .order("name")
     .returns<Row[]>();
@@ -40,7 +40,6 @@ export default async function CatalogBrandsPage({ searchParams }: { searchParams
                 </div>
                 <div className="muted">
                   {b.catalog_products[0]?.count ?? 0} produto{b.catalog_products[0]?.count === 1 ? "" : "s"}
-                  {b.catalog_url ? " · catálogo PDF" : ""}
                   {b.logo_url ? "" : " · sem logótipo"}
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/server";
 
-// Ficheiros do catálogo (fotos, logótipos, PDFs) no bucket público "catalog" (supabase/014_catalogo.sql).
+// Ficheiros do catálogo (fotos e logótipos) no bucket público "catalog" (supabase/014_catalogo.sql).
 // Só o servidor escreve, depois de confirmar que é a administração.
 export const CATALOG_BUCKET = "catalog";
 
@@ -9,7 +9,6 @@ const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
-  "application/pdf": "pdf",
 };
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 

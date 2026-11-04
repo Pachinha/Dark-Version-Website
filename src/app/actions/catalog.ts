@@ -11,12 +11,12 @@ import { panel } from "@/lib/panel";
 import type { FormState } from "./auth";
 
 // Catálogo no painel (separador "Catálogo"): marcas, categorias e produtos.
+// Sem catálogos em PDF: o site mostra só os produtos escolhidos pela Pachinha.
 // Cada função começa por requireAdmin(): num ficheiro "use server" cada export é um endpoint público.
 // As escritas usam a sessão da administração (RLS: is_admin()); os ficheiros vão pelo servidor.
 
 const MAX_LOGO = 2 * 1024 * 1024;
 const MAX_IMAGE = 4 * 1024 * 1024;
-const MAX_PDF = 15 * 1024 * 1024;
 const MAX_PHOTOS = 12;
 
 const text = (fd: FormData, key: string, max = 5000) => String(fd.get(key) ?? "").trim().slice(0, max);
@@ -199,21 +199,17 @@ export async function saveBrand(_: FormState, fd: FormData): Promise<FormState> 
   if (website && !/^https?:\/\/\S+$/.test(website)) return { error: "O site da marca deve começar por https://" };
 
   const { data: before } = id
-    ? await supabase.from("catalog_brands").select("logo_url, catalog_url").eq("id", id).maybeSingle<{ logo_url: string; catalog_url: string }>()
+    ? await supabase.from("catalog_brands").select("logo_url").eq("id", id).maybeSingle<{ logo_url: string }>()
     : { data: null };
   if (id && !before) return { error: "Esta marca já não existe." };
 
   const logo = file(fd, "logo");
-  const pdf = file(fd, "catalog_pdf");
   if (logo && (!IMAGE_TYPES.includes(logo.type) || logo.size > MAX_LOGO)) return { error: "O logótipo tem de ser PNG, JPG ou WebP, até 2 MB." };
-  if (pdf && (pdf.type !== "application/pdf" || pdf.size > MAX_PDF)) return { error: "O catálogo tem de ser um PDF até 15 MB." };
 
   let logoUrl = flag(fd, "remove_logo") ? "" : (before?.logo_url ?? "");
-  let catalogUrl = flag(fd, "remove_catalog") ? "" : (before?.catalog_url ?? "");
   const uploaded: string[] = [];
   try {
     if (logo) uploaded.push((logoUrl = await uploadCatalogFile(logo, "marcas")));
-    if (pdf) uploaded.push((catalogUrl = await uploadCatalogFile(pdf, "catalogos")));
   } catch (e) {
     await removeCatalogFiles(uploaded);
     console.error("[catálogo] ficheiros da marca", (e as Error).message);
@@ -230,8 +226,6 @@ export async function saveBrand(_: FormState, fd: FormData): Promise<FormState> 
     logo_height: logoHeight.value ?? 30,
     imported: flag(fd, "imported"),
     in_ticker: flag(fd, "in_ticker"),
-    catalog_url: catalogUrl,
-    catalog_label: text(fd, "catalog_label", 40),
     active: flag(fd, "active"),
     sort: sort.value ?? 0,
     translations: translations(fd, ["origin", "description"]),
@@ -243,7 +237,7 @@ export async function saveBrand(_: FormState, fd: FormData): Promise<FormState> 
     await removeCatalogFiles(uploaded);
     return error ? dbError(error, "uma marca") : { error: "Não foi possível gravar." };
   }
-  await removeCatalogFiles([before?.logo_url !== logoUrl ? before?.logo_url : null, before?.catalog_url !== catalogUrl ? before?.catalog_url : null]);
+  if (before && before.logo_url !== logoUrl) await removeCatalogFiles([before.logo_url]);
 
   refresh();
   if (!id) redirect(panel(`/catalogo/marcas/${saved.id}?criado=1`));
@@ -256,11 +250,11 @@ export async function deleteBrand(_: FormState, fd: FormData): Promise<FormState
   const id = text(fd, "id");
   const { count } = await supabase.from("catalog_products").select("id", { count: "exact", head: true }).eq("brand_id", id);
   if (count) return { error: `Esta marca ainda tem ${count} produto${count > 1 ? "s" : ""}. Apague-os ou mude-os de marca primeiro — ou esconda a marca em vez de a apagar.` };
-  const { data: brand } = await supabase.from("catalog_brands").select("logo_url, catalog_url").eq("id", id).maybeSingle<{ logo_url: string; catalog_url: string }>();
+  const { data: brand } = await supabase.from("catalog_brands").select("logo_url").eq("id", id).maybeSingle<{ logo_url: string }>();
   if (!brand) return { error: "Esta marca já não existe." };
   const { error } = await supabase.from("catalog_brands").delete().eq("id", id);
   if (error) return dbError(error, "uma marca");
-  await removeCatalogFiles([brand.logo_url, brand.catalog_url]);
+  await removeCatalogFiles([brand.logo_url]);
   refresh();
   redirect(panel("/catalogo/marcas?apagado=1"));
 }

@@ -75,7 +75,6 @@ export const pt = {
     importerEyebrow: "Importador oficial",
     importerTitle: "As marcas que representamos",
     importedBrand: "{origin} · Marca que importamos",
-    seeCatalog: "Ver catálogo",
     portfolio: "Portfólio",
     seeAllWorks: "Ver todas as obras →",
     processTitle: "Do orçamento à chama",

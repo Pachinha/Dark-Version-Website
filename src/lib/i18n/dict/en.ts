@@ -74,7 +74,6 @@ export const en: Dict = {
     importerEyebrow: "Official importer",
     importerTitle: "The brands we represent",
     importedBrand: "{origin} · Brand we import",
-    seeCatalog: "View catalogue",
     portfolio: "Portfolio",
     seeAllWorks: "View all projects →",
     processTitle: "From quote to flame",

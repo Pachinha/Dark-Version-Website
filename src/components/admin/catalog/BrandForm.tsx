@@ -15,8 +15,6 @@ export type BrandFormData = {
   logo_height: number;
   imported: boolean;
   in_ticker: boolean;
-  catalog_url: string;
-  catalog_label: string;
   active: boolean;
   sort: number;
   translations: Translations;
@@ -90,31 +88,6 @@ export default function BrandForm({ brand }: { brand?: BrandFormData }) {
           <label className="check">
             <input type="checkbox" name="remove_logo" checked={removeLogo} onChange={(e) => setRemoveLogo(e.target.checked)} />
             <span>Retirar o logótipo</span>
-          </label>
-        )}
-      </fieldset>
-
-      <fieldset className="tr-lang">
-        <legend>Catálogo em PDF <span className="hint">(opcional, até 15 MB — o site mostra &quot;Ver catálogo&quot;)</span></legend>
-        {b?.catalog_url && (
-          <p style={{ margin: 0 }}>
-            <a className="link" href={b.catalog_url} target="_blank" rel="noreferrer">Abrir o catálogo atual ↗</a>
-          </p>
-        )}
-        <div className="row" style={{ alignItems: "flex-start" }}>
-          <label className="field" style={{ flex: 1, minWidth: 220 }}>
-            {b?.catalog_url ? "Substituir PDF" : "Carregar PDF"}
-            <input type="file" name="catalog_pdf" accept="application/pdf" />
-          </label>
-          <label className="field" style={{ width: 200 }}>
-            Etiqueta <span className="hint">ex.: 2025/2026</span>
-            <input name="catalog_label" defaultValue={b?.catalog_label} maxLength={40} />
-          </label>
-        </div>
-        {b?.catalog_url && (
-          <label className="check">
-            <input type="checkbox" name="remove_catalog" />
-            <span>Retirar o catálogo</span>
           </label>
         )}
       </fieldset>

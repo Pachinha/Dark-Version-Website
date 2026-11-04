@@ -74,7 +74,6 @@ export const es: Dict = {
     importerEyebrow: "Importador oficial",
     importerTitle: "Las marcas que representamos",
     importedBrand: "{origin} · Marca que importamos",
-    seeCatalog: "Ver catálogo",
     portfolio: "Portafolio",
     seeAllWorks: "Ver todas las obras →",
     processTitle: "Del presupuesto a la llama",
