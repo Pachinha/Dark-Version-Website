@@ -29,16 +29,18 @@ export const QUOTE_CATEGORY_BY_SLUG: Record<string, string> = {
 };
 export const QUOTE_CATEGORIES = Object.values(QUOTE_CATEGORY_BY_SLUG);
 
-// Pedido de orçamento já com o tipo, o combustível e (opcional) o modelo escolhidos.
-export function quoteHref(categorySlug?: string, fuel?: Fuel, model?: string) {
+// Pedido de orçamento já com o tipo e o combustível escolhidos (páginas de categoria).
+export function quoteHref(categorySlug?: string, fuel?: Fuel) {
   const params = new URLSearchParams();
   const type = categorySlug && QUOTE_CATEGORY_BY_SLUG[categorySlug];
   if (type) params.set("tipo", type);
   if (fuel && fuel !== "carvao") params.set("combustivel", fuel);
-  if (model) params.set("modelo", model);
   const qs = params.toString();
   return `/pedir-orcamento${qs ? `?${qs}` : ""}`;
 }
+
+// Pedido de orçamento de um modelo concreto: o formulário abre já com esse equipamento.
+export const productQuoteHref = (productSlug: string) => `/pedir-orcamento?produto=${encodeURIComponent(productSlug)}`;
 
 // Etiquetas que a administração pode pôr num produto ("Importador" vem da marca).
 export const PRODUCT_BADGES = ["novidade", "exposicao", "ultima_unidade"] as const;

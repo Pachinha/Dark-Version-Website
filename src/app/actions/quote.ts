@@ -88,6 +88,15 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
 
   const admin = createAdminClient();
 
+  // Pedido feito a partir da página de um modelo: fica identificado no início da mensagem.
+  const productSlug = text(formData, "product_slug");
+  const { data: product } = productSlug
+    ? await admin.from("catalog_products").select("slug, name, catalog_brands(name)").eq("slug", productSlug).maybeSingle<{ slug: string; name: string; catalog_brands: { name: string } | null }>()
+    : { data: null };
+  const productLine = product
+    ? `Equipamento escolhido no site: ${product.catalog_brands?.name ?? ""} ${product.name} — ${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/produto/${product.slug}`.trim()
+    : "";
+
   // Travão contra envios repetidos: no máximo 3 pedidos por hora para o mesmo telefone.
   const since = new Date(Date.now() - 3600 * 1000).toISOString();
   const { count } = await admin
@@ -114,7 +123,7 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
     id,
     user_id: current?.user.id ?? null,
     category,
-    message,
+    message: [productLine, message].filter(Boolean).join("\n\n").slice(0, 4000),
     name,
     phone,
     email,
@@ -166,6 +175,7 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
         [
           `🔥 Novo pedido de orçamento ${ref}`,
           `${category}${workType in WORK_TYPE ? ` · ${WORK_TYPE[workType]}` : ""}`,
+          ...(product ? [`Modelo: ${product.catalog_brands?.name ?? ""} ${product.name}`.trim()] : []),
           `${municipality}${outsideArea ? " (fora da zona gratuita)" : ""}${paths.length ? ` · ${paths.length} foto${paths.length > 1 ? "s" : ""}` : ""}`,
           // Pedido feito no site noutra língua: a equipa sabe em que língua responder.
           ...(locale !== "pt" ? [`🌍 Pedido feito no site em ${LOCALE_NAMES[locale]}`] : []),

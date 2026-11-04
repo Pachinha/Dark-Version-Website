@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import AnimateIn from "@/components/AnimateIn";
 import ProductGallery from "@/components/ProductGallery";
 import ProductGrid, { badgeOf } from "@/components/ProductGrid";
-import { quoteHref } from "@/lib/catalog";
+import { productQuoteHref } from "@/lib/catalog";
 import { getCatalog } from "@/lib/catalog-data";
 import { fmt, formatNumber } from "@/lib/i18n/config";
 import { getI18n, pageMetadata } from "@/lib/i18n/server";
@@ -97,7 +97,7 @@ export default async function ProdutoPage({ params }: Params) {
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "28px" }}>
                 <Link
-                  href={href(quoteHref(product.category.slug, product.fuel, fullName))}
+                  href={href(productQuoteHref(product.slug))}
                   className="btn-primary"
                   style={{ background: "#bf5b2d", color: "#fff", fontSize: "14.5px", fontWeight: 600, padding: "15px 26px", borderRadius: "999px", textDecoration: "none", alignSelf: "flex-start" }}
                 >

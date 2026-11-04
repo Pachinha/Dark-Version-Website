@@ -17,6 +17,7 @@ import { fmt } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 
 type Contact = { name: string; phone: string; email: string };
+export type ChosenProduct = { slug: string; name: string; brand: string; category: string; photo: string };
 export type SavedAddress = { id: string; label: string; address: string; details: string; postcode: string; locality: string; lat: number; lng: number };
 type Photo = { file: File; url: string };
 
@@ -51,13 +52,15 @@ function Choices({
 export default function QuoteWizard({
   contact,
   signedIn,
-  initial = { category: "", fuel: "", message: "" },
+  initial = { category: "", fuel: "" },
   savedAddresses = [],
+  product,
 }: {
   contact: Contact;
   signedIn: boolean;
-  initial?: { category: string; fuel: string; message?: string };
+  initial?: { category: string; fuel: string };
   savedAddresses?: SavedAddress[];
+  product?: ChosenProduct; // vindo da página de um modelo
 }) {
   const { t, href } = useI18n();
   const q = t.quote;
@@ -72,7 +75,7 @@ export default function QuoteWizard({
     chimney: "",
     area_m2: "",
     fuel: initial.fuel,
-    message: initial.message ?? "",
+    message: "",
     ...contact,
     municipality: "",
     other_municipality: "",
@@ -82,7 +85,9 @@ export default function QuoteWizard({
     contact_preference: "telefone",
     privacy: false,
   };
-  const [step, setStep] = useState(0);
+  // Com um modelo escolhido, o passo "O que procura" já está feito.
+  const [chosen, setChosen] = useState<ChosenProduct | null>(product ?? null);
+  const [step, setStep] = useState(product ? 1 : 0);
   const [data, setData] = useState(empty);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -196,6 +201,7 @@ export default function QuoteWizard({
       else fd.append(key, String(value));
     }
     photos.forEach((p) => fd.append("photos", p.file));
+    if (chosen) fd.append("product_slug", chosen.slug);
     fd.append("website", honeypot.current?.value ?? "");
     setSubmitted(true);
     startTransition(() => action(fd));
@@ -299,6 +305,27 @@ export default function QuoteWizard({
 
       {step === 1 && (
         <fieldset className="step-body">
+          {chosen && (
+            <div className="chosen-product">
+              {chosen.photo && <img src={chosen.photo} alt="" />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span className="hint">{q.chosen}</span>
+                <strong>{chosen.brand} {chosen.name}</strong>
+                <span className="muted">{chosen.category}</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => {
+                  setChosen(null);
+                  set("category", "");
+                  go(0);
+                }}
+              >
+                {q.changeProduct}
+              </button>
+            </div>
+          )}
           <legend>{q.workLegend}</legend>
           <div className="field">
             {q.workType}
@@ -470,6 +497,7 @@ export default function QuoteWizard({
         <fieldset className="step-body">
           <legend>{q.confirmLegend}</legend>
           <dl className="summary">
+            {chosen && <div><dt>{q.sumProduct}</dt><dd>{chosen.brand} {chosen.name}</dd></div>}
             <div><dt>{q.sumLooking}</dt><dd>{L.products[data.category]?.label ?? data.category}</dd></div>
             <div>
               <dt>{q.sumWork}</dt>

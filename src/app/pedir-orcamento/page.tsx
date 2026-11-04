@@ -3,7 +3,8 @@ import Shell from "@/components/account/Shell";
 import { getCurrentUser } from "@/lib/auth";
 import { FUEL, QUOTE_PRODUCTS } from "@/lib/labels";
 import { createClient } from "@/lib/supabase/server";
-import { fmt } from "@/lib/i18n/config";
+import { QUOTE_CATEGORY_BY_SLUG } from "@/lib/catalog";
+import { getCatalog } from "@/lib/catalog-data";
 import { getI18n, pageMetadata } from "@/lib/i18n/server";
 import QuoteWizard, { type SavedAddress } from "./QuoteWizard";
 
@@ -12,10 +13,13 @@ export async function generateMetadata() {
   return pageMetadata((d) => d.quote.meta, { description: t.quote.metaDescription });
 }
 
-export default async function PedirOrcamentoPage({ searchParams }: { searchParams: Promise<{ tipo?: string; combustivel?: string; modelo?: string }> }) {
-  const { t } = await getI18n();
+export default async function PedirOrcamentoPage({ searchParams }: { searchParams: Promise<{ tipo?: string; combustivel?: string; produto?: string }> }) {
+  const { locale, t } = await getI18n();
   const q = t.quote;
-  const { tipo, combustivel, modelo } = await searchParams;
+  const { tipo, combustivel, produto } = await searchParams;
+  // Vindo da página de um modelo: o pedido já abre com esse equipamento.
+  const product = produto ? (await getCatalog(locale)).products.find((p) => p.slug === produto) : undefined;
+  const nextHere = `/pedir-orcamento${product ? `?produto=${encodeURIComponent(product.slug)}` : ""}`;
   const current = await getCurrentUser();
   const profile = current?.profile;
 
@@ -42,7 +46,7 @@ export default async function PedirOrcamentoPage({ searchParams }: { searchParam
         {!current && (
           <div className="account-hint">
             <p>
-              <strong>{q.noAccount}</strong> {q.signInHint} <Link href="/entrar?next=/pedir-orcamento">{q.signInLink}</Link>.
+              <strong>{q.noAccount}</strong> {q.signInHint} <Link href={`/entrar?next=${encodeURIComponent(nextHere)}`}>{q.signInLink}</Link>.
             </p>
             <p>
               {q.registerHint} <Link href="/registar">{q.registerLink}</Link>.{q.accountPtOnly && <> {q.accountPtOnly}</>}
@@ -53,13 +57,28 @@ export default async function PedirOrcamentoPage({ searchParams }: { searchParam
           <QuoteWizard
             signedIn={!!current}
             savedAddresses={savedAddresses}
-            // Vindo de um produto do catálogo, o tipo e o combustível já vêm escolhidos.
-            initial={{
-              category: tipo && tipo in QUOTE_PRODUCTS ? tipo : "",
-              fuel: combustivel && combustivel in FUEL ? combustivel : "",
-              // Vindo da página de um produto: o modelo já fica escrito na mensagem.
-              message: modelo ? fmt(t.product.modelPrefill, { model: modelo.slice(0, 160) }) : "",
-            }}
+            // Vindo de uma categoria, o tipo e o combustível já vêm escolhidos; vindo de um modelo,
+            // o próprio equipamento (tipo de categorias novas sem equivalente → "Aconselhamento").
+            initial={
+              product
+                ? {
+                    category: QUOTE_CATEGORY_BY_SLUG[product.category.slug] ?? "Aconselhamento",
+                    fuel: product.fuel in FUEL ? product.fuel : "",
+                  }
+                : {
+                    category: tipo && tipo in QUOTE_PRODUCTS ? tipo : "",
+                    fuel: combustivel && combustivel in FUEL ? combustivel : "",
+                  }
+            }
+            product={
+              product && {
+                slug: product.slug,
+                name: product.name,
+                brand: product.brand.name,
+                category: product.category.name,
+                photo: product.photos[0] ?? "",
+              }
+            }
             contact={{ name: profile?.full_name ?? "", phone: profile?.phone ?? "", email: profile?.email ?? "" }}
           />
         </section>

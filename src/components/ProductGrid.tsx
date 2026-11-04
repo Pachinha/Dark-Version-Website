@@ -1,6 +1,6 @@
 import Link from "next/link";
 import AnimateIn from "./AnimateIn";
-import { FUEL_KEYS, quoteHref, type Fuel } from "@/lib/catalog";
+import { FUEL_KEYS, type Fuel } from "@/lib/catalog";
 import type { Product } from "@/lib/catalog-data";
 import { fmt, formatNumber, midSentence } from "@/lib/i18n/config";
 import type { Dict } from "@/lib/i18n/dict/types";
@@ -107,8 +107,9 @@ export default async function ProductGrid({ products }: { products: Product[] })
                     {t.catalog.fuels[product.fuel]}
                     {product.powerKw ? ` · ${formatNumber(locale, product.powerKw)} kW` : ""}
                   </span>
-                  <Link href={href(quoteHref(product.category.slug, product.fuel, `${product.brand.name} ${product.name}`))} style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
-                    {t.common.requestQuoteArrow}
+                  {/* O orçamento pede-se na página do modelo, depois de o ver. */}
+                  <Link href={href(product.href)} style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
+                    {t.product.view}
                   </Link>
                 </div>
               </div>
