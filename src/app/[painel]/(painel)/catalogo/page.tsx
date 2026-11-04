@@ -35,6 +35,7 @@ export default async function CatalogProductsPage({ searchParams }: { searchPara
   if (estado === "visiveis") query = query.eq("active", true);
   if (estado === "escondidos") query = query.eq("active", false);
   if (estado === "outlet") query = query.eq("outlet", true);
+  if (estado === "sem_foto") query = query.eq("photos", "{}");
 
   const [{ data: products }, { data: brands }, { data: categories }] = await Promise.all([
     query.returns<Row[]>(),
@@ -76,13 +77,14 @@ export default async function CatalogProductsPage({ searchParams }: { searchPara
             <option value="visiveis">Visíveis</option>
             <option value="escondidos">Escondidos</option>
             <option value="outlet">Outlet</option>
+            <option value="sem_foto">Sem fotografia</option>
           </select>
         </label>
         <button className="btn btn-ink btn-sm" style={{ alignSelf: "flex-end", marginBottom: 4 }}>Filtrar</button>
       </form>
 
       {products?.length ? (
-        <ul className="list">
+        <ul className="card-list">
           {products.map((p) => {
             const hiddenBy = !p.catalog_brands?.active ? "marca escondida" : !p.catalog_categories?.active ? "categoria escondida" : "";
             return (

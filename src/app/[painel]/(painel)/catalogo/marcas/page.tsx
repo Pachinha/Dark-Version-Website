@@ -22,7 +22,7 @@ export default async function CatalogBrandsPage({ searchParams }: { searchParams
       </div>
       {apagado && <p className="alert alert-success">Marca apagada.</p>}
       <p className="muted">A ordem aqui é a ordem da faixa de marcas da página inicial (muda-se em &quot;Avançado&quot; dentro de cada marca).</p>
-      <ul className="list">
+      <ul className="card-list">
         {brands?.map((b) => (
           <li key={b.id}>
             <Link href={panel(`/catalogo/marcas/${b.id}`)} className="item catalog-row" style={{ textDecoration: "none", color: "inherit" }}>

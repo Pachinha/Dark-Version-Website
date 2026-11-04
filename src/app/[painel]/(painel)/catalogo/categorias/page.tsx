@@ -22,7 +22,7 @@ export default async function CatalogCategoriesPage({ searchParams }: { searchPa
       </div>
       {apagado && <p className="alert alert-success">Categoria apagada.</p>}
       <p className="muted">A ordem aqui é a ordem do menu &quot;Produtos&quot; e dos cartões da página inicial.</p>
-      <ul className="list">
+      <ul className="card-list">
         {categories?.map((c) => (
           <li key={c.id}>
             <Link href={panel(`/catalogo/categorias/${c.id}`)} className="item catalog-row" style={{ textDecoration: "none", color: "inherit" }}>

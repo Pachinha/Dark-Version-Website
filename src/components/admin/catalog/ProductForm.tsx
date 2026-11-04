@@ -97,146 +97,151 @@ export default function ProductForm({
     >
       {p && <input type="hidden" name="id" value={p.id} />}
 
-      <div className="row" style={{ alignItems: "flex-start" }}>
-        <label className="field" style={{ flex: 2, minWidth: 220 }}>
-          Nome do modelo
-          <input name="name" defaultValue={p?.name} maxLength={120} required placeholder="Ex.: Kivo 120" />
-        </label>
-        <label className="field" style={{ flex: 1, minWidth: 180 }}>
-          Marca
-          <select name="brand_id" defaultValue={p?.brand_id ?? ""} required>
-            <option value="" disabled>Escolha…</option>
-            {brands.map((b) => <option key={b.id} value={b.id}>{b.name}{b.active ? "" : " (escondida)"}</option>)}
-          </select>
-        </label>
-      </div>
-
-      <div className="row" style={{ alignItems: "flex-start" }}>
-        <label className="field" style={{ flex: 1, minWidth: 180 }}>
-          Categoria
-          <select name="category_id" defaultValue={p?.category_id ?? ""} required>
-            <option value="" disabled>Escolha…</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}{c.active ? "" : " (escondida)"}</option>)}
-          </select>
-        </label>
-        <label className="field" style={{ flex: 1, minWidth: 160 }}>
-          Combustível
-          <select name="fuel" defaultValue={p?.fuel ?? ""} required>
-            <option value="" disabled>Escolha…</option>
-            {FUEL_KEYS.map((f) => <option key={f} value={f}>{FUELS[f]}</option>)}
-          </select>
-        </label>
-        <label className="field" style={{ flex: 1, minWidth: 160 }}>
-          Etiqueta no cartão
-          <select name="badge" defaultValue={p?.badge ?? ""}>
-            {Object.entries(BADGE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        </label>
-      </div>
-
-      <label className="field">
-        Descrição <span className="hint">Opcional. Linha em branco = novo parágrafo.</span>
-        <textarea name="description" defaultValue={p?.description} maxLength={5000} style={{ minHeight: 140 }} />
-      </label>
-
-      <fieldset className="tr-lang">
-        <legend>Características técnicas <span className="hint">(opcionais — só aparecem as preenchidas)</span></legend>
-        <div className="row" style={{ alignItems: "flex-start" }}>
-          <label className="field" style={{ flex: 1, minWidth: 120 }}>
-            Potência (kW)
-            <input name="power_kw" inputMode="decimal" defaultValue={p?.power_kw ?? ""} placeholder="8,5" />
-          </label>
-          <label className="field" style={{ flex: 1, minWidth: 120 }}>
-            Aquece até (m²)
-            <input name="heated_area_m2" inputMode="numeric" defaultValue={p?.heated_area_m2 ?? ""} placeholder="90" />
-          </label>
-          <label className="field" style={{ flex: 1, minWidth: 120 }}>
-            Rendimento (%)
-            <input name="efficiency_pct" inputMode="decimal" defaultValue={p?.efficiency_pct ?? ""} placeholder="82" />
-          </label>
-          <label className="field" style={{ flex: 1, minWidth: 120 }}>
-            Classe energética
-            <select name="energy_class" defaultValue={p?.energy_class ?? ""}>
-              <option value="">—</option>
-              {ENERGY_CLASSES.map((c) => <option key={c}>{c}</option>)}
-            </select>
-          </label>
-        </div>
-        <label className="field">
-          Dimensões
-          <input name="dimensions" defaultValue={p?.dimensions} maxLength={120} placeholder="Ex.: 120 × 55 × 48 cm (L × A × P)" />
-        </label>
-      </fieldset>
-
-      <div className="field">
-        Fotografias <span className="hint">A primeira é a do cartão. Até {MAX_PHOTOS}; são reduzidas antes de enviar.</span>
-        <div className="photo-grid">
-          {photos.map((photo, i) => (
-            <figure key={photo.url} className="photo-thumb">
-              <img src={photo.url} alt={`Foto ${i + 1}`} />
-              <button type="button" onClick={() => setPhotos((list) => list.filter((_, j) => j !== i))} aria-label={`Remover foto ${i + 1}`}>×</button>
-              <span className="photo-move">
-                {i > 0 && <button type="button" onClick={() => move(i, -1)} aria-label={`Passar a foto ${i + 1} para trás`}>←</button>}
-                {i < photos.length - 1 && <button type="button" onClick={() => move(i, 1)} aria-label={`Passar a foto ${i + 1} para a frente`}>→</button>}
-              </span>
-              {i === 0 && <span className="photo-main">Principal</span>}
-            </figure>
-          ))}
-          {photos.length < MAX_PHOTOS && (
-            <label className="photo-add">
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                disabled={busy}
-                onChange={(e) => {
-                  setPhotoError("");
-                  void addPhotos(e.target.files);
-                  e.target.value = "";
-                }}
-              />
-              <span aria-hidden>{busy ? "…" : "+"}</span>
-              {busy ? "A preparar…" : "Adicionar fotos"}
+      <div className="form-split">
+        <div className="form">
+          <div className="row" style={{ alignItems: "flex-start" }}>
+            <label className="field" style={{ flex: 2, minWidth: 220 }}>
+              Nome do modelo
+              <input name="name" defaultValue={p?.name} maxLength={120} required placeholder="Ex.: Kivo 120" />
             </label>
-          )}
-        </div>
-        {photoError && <p className="alert alert-error" style={{ margin: 0 }}>{photoError}</p>}
-      </div>
+            <label className="field" style={{ flex: 1, minWidth: 180 }}>
+              Marca
+              <select name="brand_id" defaultValue={p?.brand_id ?? ""} required>
+                <option value="" disabled>Escolha…</option>
+                {brands.map((b) => <option key={b.id} value={b.id}>{b.name}{b.active ? "" : " (escondida)"}</option>)}
+              </select>
+            </label>
+          </div>
 
-      <div className="row" style={{ alignItems: "flex-start", gap: 24 }}>
-        <label className="check">
-          <input type="checkbox" name="active" defaultChecked={p?.active ?? true} />
-          <span><strong>Visível no site</strong><br /><span className="hint">Desmarque para esconder sem apagar.</span></span>
-        </label>
-        <label className="check">
-          <input type="checkbox" name="outlet" defaultChecked={p?.outlet ?? false} />
-          <span><strong>Outlet</strong><br /><span className="hint">Aparece só na página Outlet.</span></span>
-        </label>
-      </div>
+          <div className="row" style={{ alignItems: "flex-start" }}>
+            <label className="field" style={{ flex: 1, minWidth: 180 }}>
+              Categoria
+              <select name="category_id" defaultValue={p?.category_id ?? ""} required>
+                <option value="" disabled>Escolha…</option>
+                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}{c.active ? "" : " (escondida)"}</option>)}
+              </select>
+            </label>
+            <label className="field" style={{ flex: 1, minWidth: 160 }}>
+              Combustível
+              <select name="fuel" defaultValue={p?.fuel ?? ""} required>
+                <option value="" disabled>Escolha…</option>
+                {FUEL_KEYS.map((f) => <option key={f} value={f}>{FUELS[f]}</option>)}
+              </select>
+            </label>
+            <label className="field" style={{ flex: 1, minWidth: 160 }}>
+              Etiqueta no cartão
+              <select name="badge" defaultValue={p?.badge ?? ""}>
+                {Object.entries(BADGE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </label>
+          </div>
 
-      <TranslationFields
-        fields={[
-          { key: "name", label: "Nome (se mudar noutra língua)" },
-          { key: "description", label: "Descrição", long: true },
-        ]}
-        values={p?.translations}
-      />
-
-      <details className="tr-box">
-        <summary>Avançado <span className="hint">(ordem e endereço da página)</span></summary>
-        <div className="row" style={{ alignItems: "flex-start", marginTop: 12 }}>
-          <label className="field" style={{ width: 140 }}>
-            Ordem
-            <input name="sort" inputMode="numeric" defaultValue={p?.sort ?? 0} />
+          <label className="field">
+            Descrição <span className="hint">Opcional. Linha em branco = novo parágrafo.</span>
+            <textarea name="description" defaultValue={p?.description} maxLength={5000} style={{ minHeight: 140 }} />
           </label>
-          <label className="field" style={{ flex: 1, minWidth: 220 }}>
-            Endereço <span className="hint">/produto/… — vazio = gerado pelo nome</span>
-            <input name="slug" defaultValue={p?.slug} maxLength={80} />
-          </label>
-        </div>
-      </details>
 
-      <SaveBar pending={pending || busy} state={state} label={p ? "Guardar alterações" : "Criar produto"} />
+          <fieldset className="tr-lang">
+            <legend>Características técnicas <span className="hint">(opcionais — só aparecem as preenchidas)</span></legend>
+            <div className="row" style={{ alignItems: "flex-start" }}>
+              <label className="field" style={{ flex: 1, minWidth: 120 }}>
+                Potência (kW)
+                <input name="power_kw" inputMode="decimal" defaultValue={p?.power_kw ?? ""} placeholder="8,5" />
+              </label>
+              <label className="field" style={{ flex: 1, minWidth: 120 }}>
+                Aquece até (m²)
+                <input name="heated_area_m2" inputMode="numeric" defaultValue={p?.heated_area_m2 ?? ""} placeholder="90" />
+              </label>
+              <label className="field" style={{ flex: 1, minWidth: 120 }}>
+                Rendimento (%)
+                <input name="efficiency_pct" inputMode="decimal" defaultValue={p?.efficiency_pct ?? ""} placeholder="82" />
+              </label>
+              <label className="field" style={{ flex: 1, minWidth: 120 }}>
+                Classe energética
+                <select name="energy_class" defaultValue={p?.energy_class ?? ""}>
+                  <option value="">—</option>
+                  {ENERGY_CLASSES.map((c) => <option key={c}>{c}</option>)}
+                </select>
+              </label>
+            </div>
+            <label className="field">
+              Dimensões
+              <input name="dimensions" defaultValue={p?.dimensions} maxLength={120} placeholder="Ex.: 120 × 55 × 48 cm (L × A × P)" />
+            </label>
+          </fieldset>
+
+          <TranslationFields
+            fields={[
+              { key: "name", label: "Nome (se mudar noutra língua)" },
+              { key: "description", label: "Descrição", long: true },
+            ]}
+            values={p?.translations}
+          />
+
+          <details className="tr-box">
+            <summary>Avançado <span className="hint">(ordem e endereço da página)</span></summary>
+            <div className="row" style={{ alignItems: "flex-start", marginTop: 12 }}>
+              <label className="field" style={{ width: 140 }}>
+                Ordem
+                <input name="sort" inputMode="numeric" defaultValue={p?.sort ?? 0} />
+              </label>
+              <label className="field" style={{ flex: 1, minWidth: 220 }}>
+                Endereço <span className="hint">/produto/… — vazio = gerado pelo nome</span>
+                <input name="slug" defaultValue={p?.slug} maxLength={80} />
+              </label>
+            </div>
+          </details>
+        </div>
+        <div className="form form-side">
+          <div className="field">
+            Fotografias <span className="hint">A primeira é a do cartão. Até {MAX_PHOTOS}; são reduzidas antes de enviar.</span>
+            <div className="photo-grid">
+              {photos.map((photo, i) => (
+                <figure key={photo.url} className="photo-thumb">
+                  <img src={photo.url} alt={`Foto ${i + 1}`} />
+                  <button type="button" onClick={() => setPhotos((list) => list.filter((_, j) => j !== i))} aria-label={`Remover foto ${i + 1}`}>×</button>
+                  <span className="photo-move">
+                    {i > 0 && <button type="button" onClick={() => move(i, -1)} aria-label={`Passar a foto ${i + 1} para trás`}>←</button>}
+                    {i < photos.length - 1 && <button type="button" onClick={() => move(i, 1)} aria-label={`Passar a foto ${i + 1} para a frente`}>→</button>}
+                  </span>
+                  {i === 0 && <span className="photo-main">Principal</span>}
+                </figure>
+              ))}
+              {photos.length < MAX_PHOTOS && (
+                <label className="photo-add">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    disabled={busy}
+                    onChange={(e) => {
+                      setPhotoError("");
+                      void addPhotos(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                  <span aria-hidden>{busy ? "…" : "+"}</span>
+                  {busy ? "A preparar…" : "Adicionar fotos"}
+                </label>
+              )}
+            </div>
+            {photoError && <p className="alert alert-error" style={{ margin: 0 }}>{photoError}</p>}
+          </div>
+
+          <div className="form" style={{ gap: 12 }}>
+            <label className="check">
+              <input type="checkbox" name="active" defaultChecked={p?.active ?? true} />
+              <span><strong>Visível no site</strong><br /><span className="hint">Desmarque para esconder sem apagar.</span></span>
+            </label>
+            <label className="check">
+              <input type="checkbox" name="outlet" defaultChecked={p?.outlet ?? false} />
+              <span><strong>Outlet</strong><br /><span className="hint">Aparece só na página Outlet.</span></span>
+            </label>
+          </div>
+
+          <SaveBar pending={pending || busy} state={state} label={p ? "Guardar alterações" : "Criar produto"} />
+        </div>
+      </div>
     </form>
   );
 }
