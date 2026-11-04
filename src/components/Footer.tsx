@@ -49,7 +49,8 @@ export default async function Footer() {
     { label: f.complaints, href: "https://www.livroreclamacoes.pt" },
   ];
   return (
-    <>
+    // Sempre no fim da página: em páginas curtas o margin-top:auto empurra-o para o fundo do ecrã.
+    <div className="site-foot">
       <footer
         className="site-footer"
         style={{ background: "#262019", color: "#f2ece2", padding: "44px 48px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "48px" }}
@@ -94,6 +95,6 @@ export default async function Footer() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }
