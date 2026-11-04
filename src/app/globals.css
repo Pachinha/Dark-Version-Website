@@ -20,6 +20,8 @@
 }
 
 body {
+  display: flex;
+  flex-direction: column;
   background: #1a1108;
   color: #262019;
   font-family: "Archivo", Arial, Helvetica, sans-serif;
@@ -258,6 +260,9 @@ body {
 
 /* ── Área de cliente / autenticação ── */
 .shell {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
   min-height: 100svh;
   background: radial-gradient(ellipse at 20% 0%, rgba(191,91,45,0.16) 0%, transparent 60%), #1a1108;
   color: #f2ece2;
@@ -271,6 +276,8 @@ body {
   flex-wrap: wrap;
 }
 .shell-main {
+  width: 100%;
+  box-sizing: border-box;
   max-width: 1080px;
   margin: 0 auto;
   padding: 16px clamp(16px, 4vw, 52px) 64px;
@@ -696,7 +703,7 @@ a.photo-thumb { display: block; }
 @media (max-width: 520px) { .progress li { font-size: 10.5px; } }
 @media print {
   .shell { background: #fff !important; min-height: 0; }
-  .shell-header, .no-print { display: none !important; }
+  .shell-header, .no-print, .site-foot { display: none !important; }
   .shell-main { padding: 0; }
   .receipt .panel { padding: 0; }
 }
@@ -777,6 +784,8 @@ a.photo-thumb { display: block; }
 }
 .fuel-strip a:hover { border-color: #e2a276; color: #e2a276; }
 
+/* Rodapé colado ao fundo da página em todos os ecrãs */
+.site-foot { margin-top: auto; flex-shrink: 0; }
 .ticker-band { position: relative; overflow: hidden; display: flex; align-items: center; padding: 20px 0; background: #1f150b; border-top: 1px solid rgba(242,236,226,0.06); }
 
 @media (max-width: 1100px) {

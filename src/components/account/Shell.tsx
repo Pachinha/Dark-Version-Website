@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
+import Footer from "@/components/Footer";
 
 // panelHome: no painel da equipa o logótipo leva ao início do painel (não ao site),
 // e terminar sessão volta ao login do painel.
@@ -36,6 +37,8 @@ export default function Shell({
         )}
       </header>
       <main className="shell-main">{children}</main>
+      {/* O rodapé do site aparece em todas as páginas públicas; o painel da equipa não o tem. */}
+      {!panelHome && <Footer />}
     </div>
   );
 }

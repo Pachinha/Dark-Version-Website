@@ -45,7 +45,8 @@ const legalLinks = [
 
 export default function Footer() {
   return (
-    <>
+    // Sempre no fim da página: em páginas curtas o margin-top:auto empurra-o para o fundo do ecrã.
+    <div className="site-foot">
       <BrandTicker />
       <footer
         className="site-footer"
@@ -91,6 +92,6 @@ export default function Footer() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }
