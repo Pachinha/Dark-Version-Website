@@ -1,5 +1,5 @@
 // Builds the client notification shown after an admin change. Email is sent by the
-// server (SMTP, see emailClient); WhatsApp opens the admin's app with the text ready.
+// server (Resend or SMTP, see lib/mailer.ts and emailClient); WhatsApp opens the admin's app with the text ready.
 
 export type Notice = {
   clientId: string | null; // null = pedido feito sem conta

@@ -106,13 +106,24 @@ if (command === "list") {
 
   const to = pick(EMAILS);
   if (!to) console.log(`· ${groupName}: sem cópia por email.`);
-  else if (!get("SMTP_HOST") || !get("SMTP_USER") || !get("SMTP_PASS")) console.log(`✗ email para ${to}: SMTP não configurado.`);
+  else if (!(get("RESEND_API_KEY") && get("MAIL_FROM")) && !(get("SMTP_HOST") && get("SMTP_USER") && get("SMTP_PASS")))
+    console.log(`✗ email para ${to}: envio de email não configurado.`);
   else {
-    const { default: nodemailer } = await import("nodemailer");
-    const port = Number(get("SMTP_PORT") || 465);
-    const transport = nodemailer.createTransport({ host: get("SMTP_HOST"), port, secure: port === 465, auth: { user: get("SMTP_USER"), pass: get("SMTP_PASS") } });
+    const subject = `Lareiras Pachinha — teste dos avisos (${groupName})`;
     try {
-      await transport.sendMail({ from: get("SMTP_FROM") || get("SMTP_USER"), to, subject: `Lareiras Pachinha — teste dos avisos (${groupName})`, text });
+      if (get("RESEND_API_KEY") && get("MAIL_FROM")) {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${get("RESEND_API_KEY")}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ from: get("MAIL_FROM"), to: to.split(",").map((s) => s.trim()), subject, text }),
+        });
+        if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
+      } else {
+        const { default: nodemailer } = await import("nodemailer");
+        const port = Number(get("SMTP_PORT") || 465);
+        const transport = nodemailer.createTransport({ host: get("SMTP_HOST"), port, secure: port === 465, auth: { user: get("SMTP_USER"), pass: get("SMTP_PASS") } });
+        await transport.sendMail({ from: get("SMTP_FROM") || get("SMTP_USER"), to, subject, text });
+      }
       console.log(`✓ email enviado para ${to}`);
     } catch (error) {
       console.log(`✗ email para ${to}: ${error.message}`);

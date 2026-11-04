@@ -274,7 +274,7 @@ export async function deleteJob(formData: FormData): Promise<EditResult> {
   return { redirectTo: panel("/obras") };
 }
 
-// ── Notificar o cliente por email — enviado pelo servidor (SMTP), sem abrir o programa de email ──
+// ── Notificar o cliente por email — enviado pelo servidor (ver lib/mailer.ts), sem abrir o programa de email ──
 export async function emailClient(n: Notice): Promise<{ error?: string }> {
   const { profile } = await requireStaff();
   if (n.sheetId && profile.role !== "admin") return { error: "Só a administração envia orçamentos." };
@@ -286,7 +286,7 @@ export async function emailClient(n: Notice): Promise<{ error?: string }> {
     ? [{ filename: sheetFileName(found.sheet), content: await renderSheetPdf(found.sheet, found.client), contentType: "application/pdf" }]
     : undefined;
   const sent = await sendMail({ to: n.email, subject: n.subject, text: n.message, html, attachments });
-  if (!sent) return { error: "Não foi possível enviar o email. Verifique a configuração de email (SMTP)." };
+  if (!sent) return { error: "Não foi possível enviar o email. Verifique a configuração de email (Resend/SMTP)." };
   await logNotification(n, "email");
   return {};
 }
