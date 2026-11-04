@@ -1,6 +1,5 @@
 import "server-only";
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import { glammPng, logoPng } from "./pdf-images";
 import { Document, Image, Page, StyleSheet, Text, View, renderToBuffer, type Styles } from "@react-pdf/renderer";
 import { DOCUMENT_HEADER } from "@/lib/company";
 import { formatDate } from "@/lib/labels";
@@ -94,11 +93,12 @@ function Check({ on, label, sub }: { on: boolean; label: string; sub: string }) 
   );
 }
 
+// As imagens vêm embutidas (scripts/pdf-images.mjs): no servidor da Cloudflare não há ficheiros para ler.
 let logo: Buffer | null = null;
 let glamm: Buffer | null = null;
-const getLogo = () => (logo ??= readFileSync(path.join(process.cwd(), "public", "images", "logo-doc.png")));
+const getLogo = () => (logo ??= Buffer.from(logoPng, "base64"));
 // Logótipo Glamm Fire (de glammfire.com, recolorido em grafite para fundo branco).
-const getGlamm = () => (glamm ??= readFileSync(path.join(process.cwd(), "public", "images", "glammfire-doc.png")));
+const getGlamm = () => (glamm ??= Buffer.from(glammPng, "base64"));
 
 const num = (n: number | null | undefined) => (n === null || n === undefined ? "" : String(Number(n)).replace(".", ","));
 const pct = (n: number) => String(Number(n)).replace(".", ",");
