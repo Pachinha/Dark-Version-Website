@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
-import { CATEGORIES } from "@/lib/catalog";
+import { QUOTE_CATEGORIES } from "@/lib/catalog";
 import { isInPortugal } from "@/lib/geo";
 import { MAINTENANCE_SERVICE, formatDate, formatTime, fromLocalInput } from "@/lib/labels";
 import { SIGNATURE, greeting, type Notice } from "@/lib/notify";
@@ -92,7 +92,7 @@ export async function createEntry(formData: FormData): Promise<EditResult> {
   // ── Pedido de orçamento / visita técnica ──
   if (kind === "orcamento" || kind === "visita") {
     const category = text(formData, "category");
-    if (!CATEGORIES.some((c) => c.label === category)) return { error: "Escolha o tipo de equipamento." };
+    if (!QUOTE_CATEGORIES.includes(category)) return { error: "Escolha o tipo de equipamento." };
     const visitAt = kind === "visita" ? fromLocalInput(text(formData, "visit_at")) : null;
     if (kind === "visita" && !visitAt) return { error: "Indique a data e hora da visita." };
     const municipality = place ? municipalityFromPostcode(place.postcode) : "";

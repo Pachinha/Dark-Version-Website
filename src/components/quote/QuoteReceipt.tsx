@@ -1,11 +1,6 @@
-import {
-  CONTACT_PREFERENCE,
-  QUOTE_STATUS,
-  WORK_TYPE,
-  describeAvailability,
-  formatDate,
-  quoteRef,
-} from "@/lib/labels";
+import { describeAvailability, formatDate, quoteRef } from "@/lib/labels";
+import { LOCALE_TAGS, fmt } from "@/lib/i18n/config";
+import { getI18n } from "@/lib/i18n/server";
 
 const PROGRESS = ["novo", "visita_marcada", "visita_feita", "orcamento_enviado", "em_obra"];
 
@@ -29,28 +24,33 @@ export const RECEIPT_COLUMNS =
 
 // Conteúdo do comprovativo do pedido — o mesmo para o cliente (/pedido/[id]) e para o painel.
 // Cada página põe os seus próprios botões em "actions" (o cliente volta ao site, a equipa ao pedido).
-export default function QuoteReceipt({ q, actions }: { q: ReceiptQuote; actions: React.ReactNode }) {
+// No painel a língua é sempre o português; no site, a da página.
+export default async function QuoteReceipt({ q, actions }: { q: ReceiptQuote; actions: React.ReactNode }) {
+  const { locale, t } = await getI18n();
+  const r = t.receipt;
+  const L = t.labels;
+  const date = (value: string | null, withTime = false) => formatDate(value, withTime, LOCALE_TAGS[locale]);
   const ref = quoteRef(q.ref);
   const step = PROGRESS.indexOf(q.status);
   const closed = step === -1; // recusado / cancelado
 
   return (
     <section className="panel">
-      <span className="eyebrow">Comprovativo do pedido de orçamento</span>
+      <span className="eyebrow">{r.eyebrow}</span>
       <div className="item-head" style={{ alignItems: "flex-end" }}>
         <div>
           <h1 className="page-title" style={{ marginBottom: 4 }}>{ref}</h1>
-          <span className="muted">Pedido feito a {formatDate(q.created_at, true)}</span>
+          <span className="muted">{fmt(r.madeOn, { date: date(q.created_at, true) })}</span>
         </div>
-        <span className="badge">{QUOTE_STATUS[q.status] ?? q.status}</span>
+        <span className="badge">{L.status[q.status] ?? q.status}</span>
       </div>
 
       {!closed && (
-        <ol className="progress" aria-label="Estado do pedido">
+        <ol className="progress" aria-label={r.progressAria}>
           {PROGRESS.map((s, i) => (
             <li key={s} className={i < step ? "progress-done" : i === step ? "progress-current" : ""}>
               <span />
-              {QUOTE_STATUS[s]}
+              {L.status[s]}
             </li>
           ))}
         </ol>
@@ -58,29 +58,28 @@ export default function QuoteReceipt({ q, actions }: { q: ReceiptQuote; actions:
 
       {q.status === "visita_marcada" && q.visit_at && (
         <p className="info-box" style={{ marginBottom: 16 }}>
-          <strong>Visita técnica marcada para {formatDate(q.visit_at, true)}.</strong>
+          <strong>{fmt(r.visitBooked, { date: date(q.visit_at, true) })}</strong>
         </p>
       )}
 
       <dl className="summary">
-        <div><dt>Nome</dt><dd>{q.name}</dd></div>
-        <div><dt>Procura</dt><dd>{[q.category, q.work_type && WORK_TYPE[q.work_type]].filter(Boolean).join(" · ")}</dd></div>
-        <div><dt>Concelho</dt><dd>{q.municipality || "—"}</dd></div>
-        <div><dt>Disponibilidade</dt><dd>{describeAvailability(q.availability)}</dd></div>
-        <div><dt>Contacto</dt><dd>{CONTACT_PREFERENCE[q.contact_preference] ?? "—"}</dd></div>
-        <div><dt>Fotos</dt><dd>{q.photos?.length ? `${q.photos.length} enviada${q.photos.length > 1 ? "s" : ""}` : "Nenhuma"}</dd></div>
+        <div><dt>{r.name}</dt><dd>{q.name}</dd></div>
+        <div><dt>{r.looking}</dt><dd>{[L.products[q.category]?.label ?? q.category, q.work_type && L.workType[q.work_type]].filter(Boolean).join(" · ")}</dd></div>
+        <div><dt>{r.municipality}</dt><dd>{q.municipality || "—"}</dd></div>
+        <div><dt>{r.availability}</dt><dd>{describeAvailability(q.availability, L)}</dd></div>
+        <div><dt>{r.contact}</dt><dd>{L.contactPreference[q.contact_preference] ?? "—"}</dd></div>
+        <div><dt>{r.photos}</dt><dd>{q.photos?.length ? (q.photos.length > 1 ? fmt(r.photosMany, { n: q.photos.length }) : r.photosOne) : r.none}</dd></div>
       </dl>
 
       {q.admin_reply && (
         <div className="reply">
-          <strong>Mensagem da Lareiras Pachinha:</strong>
+          <strong>{r.message}</strong>
           <p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{q.admin_reply}</p>
         </div>
       )}
 
       <p className="muted" style={{ margin: "18px 0 0" }}>
-        Este documento comprova que o pedido foi recebido pela Lareiras Pachinha. Não é um orçamento: o orçamento é
-        enviado depois da visita técnica.
+        {r.disclaimer}
       </p>
 
       <div className="row no-print" style={{ marginTop: 18 }}>

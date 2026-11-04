@@ -1,6 +1,6 @@
 import NewEntryForm from "@/components/admin/NewEntryForm";
 import { requireAdmin } from "@/lib/auth";
-import { CATEGORIES } from "@/lib/catalog";
+import { QUOTE_CATEGORIES } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Novo registo — Painel", robots: { index: false, follow: false } };
@@ -28,7 +28,7 @@ export default async function NewEntryPage({ searchParams }: { searchParams: Pro
         initialKind={KINDS.find((k) => k === tipo) ?? "visita"}
         clients={(clients ?? []).map((c) => ({ ...c, phone: c.phone ?? "" }))}
         staff={staff ?? []}
-        categories={CATEGORIES.map((c) => c.label)}
+        categories={QUOTE_CATEGORIES}
       />
     </section>
   );

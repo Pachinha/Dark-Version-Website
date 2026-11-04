@@ -6,42 +6,21 @@ import { submitQuote } from "@/app/actions/quote";
 import AvailabilityPicker from "@/components/account/AvailabilityPicker";
 import PlaceSearch, { type Place } from "@/components/account/PlaceSearch";
 import FormMessage from "@/components/account/FormMessage";
-import {
-  CHIMNEY,
-  CONTACT_PREFERENCE,
-  FUEL,
-  HOME_TYPE,
-  QUOTE_PRODUCTS,
-  WORK_TYPE,
-  describeAvailability,
-  quoteRef,
-} from "@/lib/labels";
+import { CONTACT_PREFERENCE, QUOTE_PRODUCTS, describeAvailability, quoteRef } from "@/lib/labels";
 import { companyWhatsappUrl } from "@/lib/notify";
 import { googleMapsUrl } from "@/lib/geo";
 import { FREE_VISIT_MUNICIPALITIES, OTHER_MUNICIPALITY, municipalityFromPostcode } from "@/lib/service-area";
 import PhoneInput from "@/components/PhoneInput";
+import { shrinkImage as shrink } from "@/lib/shrink-image";
 import { isValidPhone } from "@/lib/phone";
+import { fmt } from "@/lib/i18n/config";
+import { useI18n } from "@/lib/i18n/client";
 
 type Contact = { name: string; phone: string; email: string };
 export type SavedAddress = { id: string; label: string; address: string; details: string; postcode: string; locality: string; lat: number; lng: number };
 type Photo = { file: File; url: string };
 
-const STEPS = ["O que procura", "A obra", "Fotos", "Visita", "Confirmar"];
 const MAX_PHOTOS = 6;
-
-// Fotos de telemóvel têm 3–8 MB: reduz para 1600 px em JPEG antes de enviar.
-async function shrink(file: File): Promise<File> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.82));
-  if (!blob) throw new Error("conversion failed");
-  return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "foto"}.jpg`, { type: "image/jpeg" });
-}
 
 function Choices({
   options,
@@ -72,14 +51,18 @@ function Choices({
 export default function QuoteWizard({
   contact,
   signedIn,
-  initial = { category: "", fuel: "" },
+  initial = { category: "", fuel: "", message: "" },
   savedAddresses = [],
 }: {
   contact: Contact;
   signedIn: boolean;
-  initial?: { category: string; fuel: string };
+  initial?: { category: string; fuel: string; message?: string };
   savedAddresses?: SavedAddress[];
 }) {
+  const { t, href } = useI18n();
+  const q = t.quote;
+  const L = t.labels;
+  const STEPS = q.steps;
   const [state, action, pending] = useActionState(submitQuote, undefined);
 
   const empty = {
@@ -89,7 +72,7 @@ export default function QuoteWizard({
     chimney: "",
     area_m2: "",
     fuel: initial.fuel,
-    message: "",
+    message: initial.message ?? "",
     ...contact,
     municipality: "",
     other_municipality: "",
@@ -128,20 +111,21 @@ export default function QuoteWizard({
   useEffect(() => () => previewUrls.current.forEach((url) => URL.revokeObjectURL(url)), []);
 
   function validate(s: number) {
-    if (s === 0 && !data.category) return "Escolha o que procura.";
-    if (s === 1 && !data.work_type) return "Indique o tipo de obra.";
-    if (s === 1 && !data.home_type) return "Indique o tipo de casa.";
-    if (s === 1 && data.area_m2 && (Number(data.area_m2) < 5 || Number(data.area_m2) > 2000)) return "A área deve estar entre 5 e 2000 m².";
+    const e = q.errors;
+    if (s === 0 && !data.category) return e.category;
+    if (s === 1 && !data.work_type) return e.workType;
+    if (s === 1 && !data.home_type) return e.homeType;
+    if (s === 1 && data.area_m2 && (Number(data.area_m2) < 5 || Number(data.area_m2) > 2000)) return e.area;
     if (s === 3) {
-      if (data.name.trim().length < 2) return "Indique o seu nome.";
-      if (!isValidPhone(data.phone)) return "Indique um número de telefone válido.";
-      if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) return "O email não parece válido.";
-      if (data.contact_preference === "email" && !data.email.trim()) return "Indique o email para o podermos contactar.";
-      if (!data.municipality) return "Escolha o concelho da obra.";
-      if (outside && data.other_municipality.trim().length < 2) return "Indique o concelho ou localidade da obra.";
-      if (!data.place) return "Escolha a morada da obra na pesquisa (ou use a sua localização).";
+      if (data.name.trim().length < 2) return e.name;
+      if (!isValidPhone(data.phone)) return e.phone;
+      if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) return e.email;
+      if (data.contact_preference === "email" && !data.email.trim()) return e.emailNeeded;
+      if (!data.municipality) return e.municipality;
+      if (outside && data.other_municipality.trim().length < 2) return e.otherMunicipality;
+      if (!data.place) return e.place;
     }
-    if (s === 4 && !signedIn && !data.privacy) return "Para enviarmos o pedido, aceite a Política de Privacidade.";
+    if (s === 4 && !signedIn && !data.privacy) return e.privacy;
     return "";
   }
 
@@ -178,9 +162,9 @@ export default function QuoteWizard({
     setPhotoBusy(false);
     setStepError(
       failed
-        ? `Não conseguimos abrir ${failed} das fotos. Experimente tirar a foto em JPG, ou envie-a depois por WhatsApp.`
+        ? fmt(q.errors.photosFailed, { n: failed })
         : files.length > room
-          ? `Pode enviar até ${MAX_PHOTOS} fotos.`
+          ? fmt(q.errors.maxPhotos, { max: MAX_PHOTOS })
           : "",
     );
   }
@@ -218,69 +202,67 @@ export default function QuoteWizard({
   }
 
   if (done) {
-    const whatsapp = state.ref ? companyWhatsappUrl(`Olá! Acabei de fazer o pedido de orçamento ${quoteRef(state.ref)} no site.`) : "";
+    const whatsapp = state.ref ? companyWhatsappUrl(fmt(q.done.whatsappText, { ref: quoteRef(state.ref) })) : "";
+    const d = q.done;
     return (
       <div className="request-done">
         <div className="request-done-icon" aria-hidden>✓</div>
-        <h3>Pedido enviado — obrigado, {data.name.trim().split(" ")[0]}!</h3>
+        <h3>{fmt(d.title, { name: data.name.trim().split(" ")[0] })}</h3>
         {state.ref && (
           <div className="ref-box">
-            <span>Referência do seu pedido</span>
+            <span>{d.refLabel}</span>
             <strong>{quoteRef(state.ref)}</strong>
           </div>
         )}
         <p className="muted">
           {state.emailSent ? (
-            <>Enviámos a confirmação para <strong>{data.email.trim()}</strong>. Guarde-a como comprovativo.</>
+            <>{d.emailSentBefore} <strong>{data.email.trim()}</strong>{d.emailSentAfter}</>
           ) : (
-            <>Guarde a referência ou abra o comprovativo abaixo (pode imprimi-lo ou guardá-lo em PDF).</>
+            <>{d.keepRef}</>
           )}
         </p>
         <div className="row" style={{ justifyContent: "center", margin: "6px 0 4px" }}>
           {state.id && (
-            <Link href={`/pedido/${state.id}`} className="btn btn-fire btn-sm" target="_blank">
-              Ver comprovativo
+            <Link href={href(`/pedido/${state.id}`)} className="btn btn-fire btn-sm" target="_blank">
+              {d.seeReceipt}
             </Link>
           )}
           {whatsapp && (
             <a href={whatsapp} className="btn btn-whatsapp btn-sm" target="_blank" rel="noreferrer">
-              Enviar a referência por WhatsApp
+              {d.whatsappRef}
             </a>
           )}
         </div>
         <ol className="timeline">
-          <li className="timeline-done"><strong>Pedido recebido</strong><span>A nossa equipa já foi avisada.</span></li>
+          <li className="timeline-done"><strong>{d.received}</strong><span>{d.receivedText}</span></li>
           <li>
-            <strong>Marcamos a visita técnica</strong>
-            <span>
-              Contactamo-lo por {CONTACT_PREFERENCE[data.contact_preference].toLowerCase()} para combinar o dia, dentro das suas
-              preferências.
-            </span>
+            <strong>{d.schedule}</strong>
+            <span>{fmt(d.scheduleText, { by: L.contactBy[data.contact_preference] })}</span>
           </li>
-          <li><strong>Visita sem compromisso</strong><span>Vemos o espaço, a chaminé e o que faz sentido para a sua casa.</span></li>
-          <li><strong>Orçamento</strong><span>Enviamos o orçamento detalhado. Decide com calma.</span></li>
+          <li><strong>{d.visit}</strong><span>{d.visitText}</span></li>
+          <li><strong>{d.quote}</strong><span>{d.quoteText}</span></li>
         </ol>
         {signedIn ? (
-          <Link href="/conta/orcamentos" className="btn btn-fire">Ver os meus pedidos</Link>
+          <Link href="/conta/orcamentos" className="btn btn-fire">{d.myRequests}</Link>
         ) : (
           <div className="info-box" style={{ maxWidth: 460, textAlign: "left" }}>
-            <strong>Quer acompanhar o pedido online?</strong> É opcional.{" "}
+            <strong>{d.followTitle}</strong> {d.followOptional}{" "}
             {data.email ? (
-              <>Crie uma conta com o email <strong>{data.email.trim()}</strong> e este pedido aparece no seu histórico.</>
+              <>{d.followWithEmailBefore} <strong>{data.email.trim()}</strong> {d.followWithEmailAfter}</>
             ) : (
-              <>Crie uma conta com o seu email e os próximos pedidos ficam guardados no seu histórico.</>
+              <>{d.followNoEmail}</>
             )}{" "}
-            <Link className="link" href="/registar">Criar conta →</Link>
+            <Link className="link" href="/registar">{d.createAccount}</Link>
           </div>
         )}
-        <Link href="/" className="link" style={{ marginTop: 12 }}>← Voltar ao site</Link>
+        <Link href={href("/")} className="link" style={{ marginTop: 12 }}>{d.backToSite}</Link>
       </div>
     );
   }
 
   return (
     <form onSubmit={submit} className="form" noValidate>
-      <ol className="steps" aria-label="Passos do pedido">
+      <ol className="steps" aria-label={q.stepsAria}>
         {STEPS.map((label, i) => (
           <li key={label} className={i === step ? "step-current" : i < step ? "step-done" : ""} aria-current={i === step ? "step" : undefined}>
             <button type="button" disabled={i > step} onClick={() => i < step && go(i)}>
@@ -293,7 +275,7 @@ export default function QuoteWizard({
 
       {step === 0 && (
         <fieldset className="step-body">
-          <legend>O que procura?</legend>
+          <legend>{q.whatLegend}</legend>
           <div className="media-grid">
             {Object.entries(QUOTE_PRODUCTS).map(([value, info]) => (
               <button
@@ -307,8 +289,8 @@ export default function QuoteWizard({
                   go(1);
                 }}
               >
-                <strong>{value}</strong>
-                <span>{info.desc}</span>
+                <strong>{L.products[value]?.label ?? value}</strong>
+                <span>{L.products[value]?.desc ?? info.desc}</span>
               </button>
             ))}
           </div>
@@ -317,25 +299,25 @@ export default function QuoteWizard({
 
       {step === 1 && (
         <fieldset className="step-body">
-          <legend>Conte-nos sobre a obra</legend>
+          <legend>{q.workLegend}</legend>
           <div className="field">
-            Tipo de obra
-            <Choices options={WORK_TYPE} value={data.work_type} onChange={(v) => set("work_type", v)} />
+            {q.workType}
+            <Choices options={L.workType} value={data.work_type} onChange={(v) => set("work_type", v)} />
           </div>
           <div className="field">
-            Tipo de casa
-            <Choices options={HOME_TYPE} value={data.home_type} onChange={(v) => set("home_type", v)} />
+            {q.homeType}
+            <Choices options={L.homeType} value={data.home_type} onChange={(v) => set("home_type", v)} />
           </div>
           <div className="field">
-            Já tem chaminé? <span className="hint">Opcional</span>
-            <Choices options={CHIMNEY} value={data.chimney} onChange={(v) => set("chimney", v)} />
+            {q.chimney} <span className="hint">{q.optional}</span>
+            <Choices options={L.chimney} value={data.chimney} onChange={(v) => set("chimney", v)} />
           </div>
           <div className="field">
-            Combustível preferido <span className="hint">Opcional</span>
-            <Choices options={FUEL} value={data.fuel} onChange={(v) => set("fuel", v)} />
+            {q.fuel} <span className="hint">{q.optional}</span>
+            <Choices options={L.fuel} value={data.fuel} onChange={(v) => set("fuel", v)} />
           </div>
           <label className="field" style={{ maxWidth: 260 }}>
-            Área a aquecer (m²) <span className="hint">Opcional — um valor aproximado chega</span>
+            {q.area} <span className="hint">{q.areaHint}</span>
             <input type="number" inputMode="numeric" min={5} max={2000} value={data.area_m2} onChange={(e) => set("area_m2", e.target.value)} />
           </label>
         </fieldset>
@@ -343,16 +325,15 @@ export default function QuoteWizard({
 
       {step === 2 && (
         <fieldset className="step-body">
-          <legend>Fotos do espaço</legend>
+          <legend>{q.photosLegend}</legend>
           <p className="info-box">
-            Opcional, mas ajuda muito: 2 ou 3 fotos da sala onde quer o equipamento e da chaminé (se tiver). Assim
-            preparamos melhor a visita.
+            {q.photosInfo}
           </p>
           <div className="photo-grid">
             {photos.map((p, i) => (
               <figure key={p.url} className="photo-thumb">
-                <img src={p.url} alt={`Foto ${i + 1}`} />
-                <button type="button" onClick={() => removePhoto(i)} aria-label={`Remover foto ${i + 1}`}>×</button>
+                <img src={p.url} alt={fmt(q.photoAlt, { n: i + 1 })} />
+                <button type="button" onClick={() => removePhoto(i)} aria-label={fmt(q.removePhoto, { n: i + 1 })}>×</button>
               </figure>
             ))}
             {photos.length < MAX_PHOTOS && (
@@ -368,13 +349,13 @@ export default function QuoteWizard({
                   disabled={photoBusy}
                 />
                 <span aria-hidden>{photoBusy ? "…" : "+"}</span>
-                {photoBusy ? "A preparar…" : photos.length ? "Mais fotos" : "Adicionar fotos"}
+                {photoBusy ? q.preparing : photos.length ? q.morePhotos : q.addPhotos}
               </label>
             )}
           </div>
-          <span className="hint">{photos.length}/{MAX_PHOTOS} fotos</span>
+          <span className="hint">{fmt(q.photosCount, { n: photos.length, max: MAX_PHOTOS })}</span>
           <label className="field">
-            Quer acrescentar alguma coisa? <span className="hint">Opcional — o que imagina, um modelo que viu no site, medidas…</span>
+            {q.message} <span className="hint">{q.messageHint}</span>
             <textarea value={data.message} onChange={(e) => set("message", e.target.value)} maxLength={4000} style={{ minHeight: 90 }} />
           </label>
         </fieldset>
@@ -382,41 +363,40 @@ export default function QuoteWizard({
 
       {step === 3 && (
         <fieldset className="step-body">
-          <legend>Visita técnica</legend>
+          <legend>{q.visitLegend}</legend>
           <p className="info-box">
-            Cada casa é diferente, por isso o orçamento é feito depois de uma <strong>visita técnica gratuita</strong>, sem
-            compromisso, nos concelhos do Alto Minho (até cerca de 50 km de Monção).
+            {q.visitInfoBefore} <strong>{q.visitInfoStrong}</strong>{q.visitInfoAfter}
           </p>
           <div className="row" style={{ alignItems: "flex-start" }}>
             <label className="field" style={{ flex: 1, minWidth: 200 }}>
-              Nome
+              {q.name}
               <input autoComplete="name" value={data.name} onChange={(e) => set("name", e.target.value)} maxLength={120} />
             </label>
             <div className="field" style={{ flex: 1, minWidth: 240 }}>
-              Telefone
+              {q.phone}
               <PhoneInput value={data.phone} onChange={(v) => set("phone", v)} required />
             </div>
           </div>
           <label className="field">
-            Email <span className="hint">Opcional — para receber o orçamento por email</span>
+            {q.email} <span className="hint">{q.emailHint}</span>
             <input type="email" autoComplete="email" value={data.email} onChange={(e) => set("email", e.target.value)} maxLength={200} />
           </label>
-          <div className="field" role="group" aria-label="Morada da obra">
-            Morada da obra
-            <span className="hint">Escolha uma morada real da pesquisa — assim o técnico chega à porta com o Google Maps ou o Waze.</span>
+          <div className="field" role="group" aria-label={q.address}>
+            {q.address}
+            <span className="hint">{q.addressHint}</span>
           </div>
           {data.place ? (
             <div className="item">
               <div className="item-head">
                 <strong>{data.place.address}</strong>
-                <span className="badge">{data.place.source === "gps" ? "Localização GPS" : "Morada verificada"}</span>
+                <span className="badge">{data.place.source === "gps" ? q.gps : q.verified}</span>
               </div>
               <div className="row" style={{ marginTop: 8 }}>
                 <a className="link" href={googleMapsUrl(data.place.lat, data.place.lng)} target="_blank" rel="noreferrer">
-                  Confirmar no mapa ↗
+                  {q.confirmMap}
                 </a>
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => set("place", null)}>
-                  Alterar
+                  {q.change}
                 </button>
               </div>
             </div>
@@ -424,7 +404,7 @@ export default function QuoteWizard({
             <>
               {savedAddresses.length > 0 && (
                 <div className="list" style={{ gap: 6 }}>
-                  <span className="hint">As suas moradas guardadas</span>
+                  <span className="hint">{q.saved}</span>
                   {savedAddresses.map((a) => (
                     <button
                       key={a.id}
@@ -441,47 +421,46 @@ export default function QuoteWizard({
                       <strong>{a.label}</strong> — {a.address}
                     </button>
                   ))}
-                  <span className="hint">Ou procure outra morada:</span>
+                  <span className="hint">{q.orSearch}</span>
                 </div>
               )}
-              <PlaceSearch onSelect={(place) => choosePlace(place)} placeholder="Rua e localidade da obra" />
+              <PlaceSearch onSelect={(place) => choosePlace(place)} placeholder={q.addressPlaceholder} />
             </>
           )}
           <label className="field">
-            Nº de porta, andar, indicações <span className="hint">Opcional — ex.: nº 25, portão verde</span>
+            {q.details} <span className="hint">{q.detailsHint}</span>
             <input value={data.address_details} onChange={(e) => set("address_details", e.target.value)} maxLength={200} />
           </label>
 
           <div className="row" style={{ alignItems: "flex-start" }}>
             <label className="field" style={{ flex: 1, minWidth: 200 }}>
-              Concelho da obra <span className="hint">Preenchido pela morada — confirme</span>
+              {q.municipality} <span className="hint">{q.municipalityHint}</span>
               <select value={data.municipality} onChange={(e) => set("municipality", e.target.value)}>
-                <option value="" disabled>Escolha…</option>
-                <optgroup label="Visita gratuita">
+                <option value="" disabled>{q.choose}</option>
+                <optgroup label={q.freeVisit}>
                   {FREE_VISIT_MUNICIPALITIES.map((m) => <option key={m}>{m}</option>)}
                 </optgroup>
-                <option value={OTHER_MUNICIPALITY}>Outro concelho</option>
+                <option value={OTHER_MUNICIPALITY}>{q.otherMunicipality}</option>
               </select>
             </label>
             {outside && (
               <label className="field" style={{ flex: 1, minWidth: 200 }}>
-                Qual?
-                <input value={data.other_municipality} onChange={(e) => set("other_municipality", e.target.value)} maxLength={80} placeholder="Ex.: Braga" />
+                {q.which}
+                <input value={data.other_municipality} onChange={(e) => set("other_municipality", e.target.value)} maxLength={80} placeholder={q.whichPlaceholder} />
               </label>
             )}
           </div>
           {outside && (
             <p className="info-box">
-              Fora do Alto Minho também vamos, mas a deslocação pode ter um custo. Se for o caso, dizemos-lhe o valor
-              antes de marcar a visita.
+              {q.outsideInfo}
             </p>
           )}
           <AvailabilityPicker value={data.availability} onChange={(v) => set("availability", v)} />
 
           <label className="field" style={{ maxWidth: 320 }}>
-            Como prefere ser contactado?
+            {q.contactPref}
             <select value={data.contact_preference} onChange={(e) => set("contact_preference", e.target.value)}>
-              {Object.entries(CONTACT_PREFERENCE).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              {Object.keys(CONTACT_PREFERENCE).map((v) => <option key={v} value={v}>{L.contactPreference[v]}</option>)}
             </select>
           </label>
         </fieldset>
@@ -489,36 +468,36 @@ export default function QuoteWizard({
 
       {step === 4 && (
         <fieldset className="step-body">
-          <legend>Confirme o seu pedido</legend>
+          <legend>{q.confirmLegend}</legend>
           <dl className="summary">
-            <div><dt>Procura</dt><dd>{data.category}</dd></div>
+            <div><dt>{q.sumLooking}</dt><dd>{L.products[data.category]?.label ?? data.category}</dd></div>
             <div>
-              <dt>Obra</dt>
+              <dt>{q.sumWork}</dt>
               <dd>
-                {[WORK_TYPE[data.work_type], HOME_TYPE[data.home_type], data.area_m2 && `${data.area_m2} m²`].filter(Boolean).join(" · ")}
+                {[L.workType[data.work_type], L.homeType[data.home_type], data.area_m2 && `${data.area_m2} m²`].filter(Boolean).join(" · ")}
               </dd>
             </div>
             {(data.chimney || data.fuel) && (
               <div>
-                <dt>Detalhes</dt>
-                <dd>{[data.chimney && `Chaminé: ${CHIMNEY[data.chimney].toLowerCase()}`, FUEL[data.fuel]].filter(Boolean).join(" · ")}</dd>
+                <dt>{q.sumDetails}</dt>
+                <dd>{[data.chimney && fmt(q.sumChimney, { value: L.chimney[data.chimney].toLowerCase() }), L.fuel[data.fuel]].filter(Boolean).join(" · ")}</dd>
               </div>
             )}
-            <div><dt>Fotos</dt><dd>{photos.length ? `${photos.length} foto${photos.length > 1 ? "s" : ""}` : "Sem fotos"}</dd></div>
-            <div><dt>Contacto</dt><dd>{data.name} · {data.phone}{data.email && ` · ${data.email}`}</dd></div>
-            <div><dt>Morada</dt><dd>{data.place?.address}{data.address_details && ` (${data.address_details})`}{outside && data.other_municipality ? ` · ${data.other_municipality}` : ""}</dd></div>
-            <div><dt>Disponível</dt><dd>{describeAvailability(data.availability)}</dd></div>
-            <div><dt>Contactar por</dt><dd>{CONTACT_PREFERENCE[data.contact_preference]}</dd></div>
+            <div><dt>{q.sumPhotos}</dt><dd>{photos.length ? (photos.length > 1 ? fmt(q.photosMany, { n: photos.length }) : q.photosOne) : q.noPhotos}</dd></div>
+            <div><dt>{q.sumContact}</dt><dd>{data.name} · {data.phone}{data.email && ` · ${data.email}`}</dd></div>
+            <div><dt>{q.sumAddress}</dt><dd>{data.place?.address}{data.address_details && ` (${data.address_details})`}{outside && data.other_municipality ? ` · ${data.other_municipality}` : ""}</dd></div>
+            <div><dt>{q.sumAvailable}</dt><dd>{describeAvailability(data.availability, L)}</dd></div>
+            <div><dt>{q.sumContactBy}</dt><dd>{L.contactPreference[data.contact_preference]}</dd></div>
           </dl>
           <p className="info-box">
-            Isto <strong>não é um orçamento final</strong>. Vamos contactá-lo para marcar a visita técnica, sem compromisso.
+            {q.notFinalBefore} <strong>{q.notFinalStrong}</strong>{q.notFinalAfter}
           </p>
           {!signedIn && (
             <label className="check">
               <input type="checkbox" checked={data.privacy} onChange={(e) => set("privacy", e.target.checked)} />
               <span>
-                Aceito que a Lareiras Pachinha use estes dados para responder ao meu pedido, nos termos da{" "}
-                <Link className="link" href="/privacidade" target="_blank">Política de Privacidade</Link>.
+                {q.privacyBefore}{" "}
+                <Link className="link" href={href("/privacidade")} target="_blank">{q.privacyLink}</Link>.
               </span>
             </label>
           )}
@@ -533,12 +512,12 @@ export default function QuoteWizard({
       <div className="step-actions">
         {step > 0 && (
           <button type="button" className="btn btn-ghost" onClick={() => go(step - 1)}>
-            ← Voltar
+            {q.back}
           </button>
         )}
         {step > 0 && (
           <button className="btn btn-fire" disabled={pending || photoBusy}>
-            {step < STEPS.length - 1 ? "Continuar →" : pending ? "A enviar…" : "Enviar pedido"}
+            {step < STEPS.length - 1 ? q.continue : pending ? q.sending : q.send}
           </button>
         )}
       </div>

@@ -1,21 +1,18 @@
 import CategoryLayout from "@/components/CategoryLayout";
-import type { Product } from "@/lib/catalog";
+import { getCatalog } from "@/lib/catalog-data";
+import { getI18n, pageMetadata } from "@/lib/i18n/server";
 
-export const metadata = { title: "Outlet — Lareiras Pachinha" };
+export const generateMetadata = () => pageMetadata((t) => t.nav.outlet);
 
-// Modelos de exposição e últimas unidades (provisórios até a Sandra indicar os reais).
-const products: Product[] = [
-  { category: "salamandras", brand: "MCZ", name: "Salamandra a pellets — exposição", fuel: "pellets", img: "/images/orcamento/salamandra.jpg", badge: "Exposição" },
-  { category: "recuperadores", brand: "Solzaima", name: "Recuperador a lenha — última unidade", fuel: "lenha", img: "/images/orcamento/recuperador.jpg", badge: "Última unidade" },
-  { category: "lareiras", brand: "Bellfires", name: "Lareira a gás — exposição", fuel: "gas", img: "/images/orcamento/lareira.jpg", badge: "Exposição" },
-];
-
-export default function OutletPage() {
+// Modelos de exposição e últimas unidades: produtos marcados "Outlet" no painel.
+export default async function OutletPage() {
+  const { locale, t } = await getI18n();
+  const products = (await getCatalog(locale)).products.filter((p) => p.outlet);
   return (
     <CategoryLayout
-      category="Outlet"
-      title="Equipamentos a preços especiais."
-      subtitle="Modelos de exposição e últimas unidades em perfeitas condições. Quantidades limitadas."
+      category={t.nav.outlet}
+      title={t.category.outletTitle}
+      subtitle={t.category.outletSubtitle}
       heroImg="/images/orcamento/recuperador.jpg"
       products={products}
     />

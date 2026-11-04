@@ -1,9 +1,9 @@
 import Link from "next/link";
 import PachinhaLogo from "./PachinhaLogo";
 import CookieSettingsButton from "./CookieSettingsButton";
-import BrandTicker from "./BrandTicker";
-import { CATEGORIES } from "@/lib/catalog";
+import { getCatalog } from "@/lib/catalog-data";
 import { CONTACT, telHref } from "@/lib/company";
+import { getI18n } from "@/lib/i18n/server";
 
 const linkStyle = {
   fontSize: "13px",
@@ -20,33 +20,36 @@ const headStyle = {
   marginBottom: "16px",
 };
 
-const footerLinks: Record<string, { label: string; href: string }[]> = {
-  Produtos: [...CATEGORIES.map((c) => ({ label: c.label, href: c.href })), { label: "Outlet", href: "/outlet" }],
-  Empresa: [
-    { label: "Sobre nós", href: "/sobre" },
-    { label: "Obras realizadas", href: "/obras" },
-    { label: "Marcas que importamos", href: "/#marcas" },
-    { label: "Showroom e contactos", href: "/#contactos" },
-  ],
-  Clientes: [
-    { label: "Pedir orçamento", href: "/pedir-orcamento" },
-    { label: "Apoio ao cliente", href: "/apoio-ao-cliente" },
-    { label: "Pedir assistência", href: "/conta/manutencao" },
-    { label: "Área de cliente", href: "/conta" },
-  ],
-};
-
-const legalLinks = [
-  { label: "Política de Privacidade", href: "/privacidade" },
-  { label: "Política de Cookies", href: "/cookies" },
-  { label: "Termos de Utilização", href: "/termos" },
-  { label: "Livro de Reclamações", href: "https://www.livroreclamacoes.pt" },
-];
-
-export default function Footer() {
+export default async function Footer() {
+  const { locale, t, href } = await getI18n();
+  const { categories } = await getCatalog(locale);
+  const f = t.footer;
+  const footerLinks: Record<string, { label: string; href: string }[]> = {
+    [f.products]: [
+      ...categories.map((c) => ({ label: c.name, href: href(c.href) })),
+      { label: t.nav.outlet, href: href("/outlet") },
+    ],
+    [f.company]: [
+      { label: t.nav.about, href: href("/sobre") },
+      { label: t.nav.works, href: href("/obras") },
+      { label: f.importedBrands, href: href("/#marcas") },
+      { label: f.showroom, href: href("/#contactos") },
+    ],
+    [f.clients]: [
+      { label: t.common.requestQuote, href: href("/pedir-orcamento") },
+      { label: t.nav.support, href: href("/apoio-ao-cliente") },
+      { label: f.requestService, href: "/conta/manutencao" },
+      { label: t.common.clientArea, href: "/conta" },
+    ],
+  };
+  const legalLinks = [
+    { label: f.privacy, href: href("/privacidade") },
+    { label: f.cookies, href: href("/cookies") },
+    { label: f.terms, href: href("/termos") },
+    { label: f.complaints, href: "https://www.livroreclamacoes.pt" },
+  ];
   return (
     <>
-      <BrandTicker />
       <footer
         className="site-footer"
         style={{ background: "#262019", color: "#f2ece2", padding: "44px 48px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "48px" }}
@@ -79,7 +82,7 @@ export default function Footer() {
             </div>
           ))}
           <div>
-            <div style={headStyle}>Legal</div>
+            <div style={headStyle}>{f.legal}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {legalLinks.map((link) => (
                 <Link key={link.href} href={link.href} style={linkStyle}>

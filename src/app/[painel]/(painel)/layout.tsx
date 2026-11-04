@@ -24,6 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ...(isAdmin ? [] : [{ href: panel("/partilhados"), label: "Partilhados comigo" }]),
     ...(isAdmin
       ? [
+          { href: panel("/catalogo"), label: "Catálogo" },
           { href: panel("/clientes"), label: "Clientes" },
           { href: panel("/equipa"), label: "Equipa" },
         ]

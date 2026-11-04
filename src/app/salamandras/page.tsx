@@ -1,14 +1,9 @@
-import CategoryPage, { type CategorySearchParams } from "@/components/CategoryPage";
+import { permanentRedirect } from "next/navigation";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata = { title: "Salamandras — Lareiras Pachinha" };
-
-export default function SalamandrasPage({ searchParams }: { searchParams: CategorySearchParams }) {
-  return (
-    <CategoryPage
-      slug="salamandras"
-      title="Calor onde precisa."
-      subtitle="Salamandras a lenha e a pellets, independentes e fáceis de instalar."
-      searchParams={searchParams}
-    />
-  );
+// A página passou para /produtos/salamandras (as categorias agora são geridas no painel).
+export default async function Page({ searchParams }: { searchParams: Promise<{ combustivel?: string }> }) {
+  const { href } = await getI18n();
+  const { combustivel } = await searchParams;
+  permanentRedirect(href(`/produtos/salamandras${combustivel ? `?combustivel=${encodeURIComponent(combustivel)}` : ""}`));
 }

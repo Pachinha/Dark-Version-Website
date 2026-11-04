@@ -1,14 +1,9 @@
-import CategoryPage, { type CategorySearchParams } from "@/components/CategoryPage";
+import { permanentRedirect } from "next/navigation";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata = { title: "Lareiras — Lareiras Pachinha" };
-
-export default function LareirasPage({ searchParams }: { searchParams: CategorySearchParams }) {
-  return (
-    <CategoryPage
-      slug="lareiras"
-      title="Lareiras para todos os espaços."
-      subtitle="A lenha, a gás, elétricas ou a bioetanol — com aconselhamento técnico e instalação incluída."
-      searchParams={searchParams}
-    />
-  );
+// A página passou para /produtos/lareiras (as categorias agora são geridas no painel).
+export default async function Page({ searchParams }: { searchParams: Promise<{ combustivel?: string }> }) {
+  const { href } = await getI18n();
+  const { combustivel } = await searchParams;
+  permanentRedirect(href(`/produtos/lareiras${combustivel ? `?combustivel=${encodeURIComponent(combustivel)}` : ""}`));
 }

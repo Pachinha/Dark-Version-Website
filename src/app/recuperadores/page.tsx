@@ -1,14 +1,9 @@
-import CategoryPage, { type CategorySearchParams } from "@/components/CategoryPage";
+import { permanentRedirect } from "next/navigation";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata = { title: "Recuperadores de calor — Lareiras Pachinha" };
-
-export default function RecuperadoresPage({ searchParams }: { searchParams: CategorySearchParams }) {
-  return (
-    <CategoryPage
-      slug="recuperadores"
-      title="Recupere o calor, poupe na fatura."
-      subtitle="A lenha ou a pellets, para a lareira que já tem ou para uma construção nova."
-      searchParams={searchParams}
-    />
-  );
+// A página passou para /produtos/recuperadores (as categorias agora são geridas no painel).
+export default async function Page({ searchParams }: { searchParams: Promise<{ combustivel?: string }> }) {
+  const { href } = await getI18n();
+  const { combustivel } = await searchParams;
+  permanentRedirect(href(`/produtos/recuperadores${combustivel ? `?combustivel=${encodeURIComponent(combustivel)}` : ""}`));
 }

@@ -3,15 +3,19 @@ import Shell from "@/components/account/Shell";
 import { getCurrentUser } from "@/lib/auth";
 import { FUEL, QUOTE_PRODUCTS } from "@/lib/labels";
 import { createClient } from "@/lib/supabase/server";
+import { fmt } from "@/lib/i18n/config";
+import { getI18n, pageMetadata } from "@/lib/i18n/server";
 import QuoteWizard, { type SavedAddress } from "./QuoteWizard";
 
-export const metadata = {
-  title: "Pedir orçamento — Lareiras Pachinha",
-  description: "Peça o seu orçamento em 2 minutos. Visita técnica gratuita e sem compromisso no Alto Minho.",
-};
+export async function generateMetadata() {
+  const { t } = await getI18n();
+  return pageMetadata((d) => d.quote.meta, { description: t.quote.metaDescription });
+}
 
-export default async function PedirOrcamentoPage({ searchParams }: { searchParams: Promise<{ tipo?: string; combustivel?: string }> }) {
-  const { tipo, combustivel } = await searchParams;
+export default async function PedirOrcamentoPage({ searchParams }: { searchParams: Promise<{ tipo?: string; combustivel?: string; modelo?: string }> }) {
+  const { t } = await getI18n();
+  const q = t.quote;
+  const { tipo, combustivel, modelo } = await searchParams;
   const current = await getCurrentUser();
   const profile = current?.profile;
 
@@ -28,22 +32,20 @@ export default async function PedirOrcamentoPage({ searchParams }: { searchParam
   }
 
   return (
-    <Shell signedIn={!!current}>
+    <Shell signedIn={!!current} languages>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        <span className="eyebrow">Orçamento gratuito</span>
-        <h1 className="page-title" style={{ color: "#f2ece2" }}>Pedir orçamento</h1>
+        <span className="eyebrow">{q.eyebrow}</span>
+        <h1 className="page-title" style={{ color: "#f2ece2" }}>{q.title}</h1>
         <p className="muted-light" style={{ margin: "0 0 20px", lineHeight: 1.6 }}>
-          Responda a umas perguntas rápidas — leva cerca de 2 minutos. Depois marcamos uma visita técnica, sem
-          compromisso, e enviamos o orçamento feito à medida da sua casa.
+          {q.lead}
         </p>
         {!current && (
           <div className="account-hint">
             <p>
-              <strong>Não precisa de conta para pedir orçamento.</strong> Se quiser guardar e acompanhar o histórico dos
-              seus pedidos, <Link href="/entrar?next=/pedir-orcamento">entre aqui</Link>.
+              <strong>{q.noAccount}</strong> {q.signInHint} <Link href="/entrar?next=/pedir-orcamento">{q.signInLink}</Link>.
             </p>
             <p>
-              Ainda não tem conta? <Link href="/registar">Registe-se aqui</Link>.
+              {q.registerHint} <Link href="/registar">{q.registerLink}</Link>.{q.accountPtOnly && <> {q.accountPtOnly}</>}
             </p>
           </div>
         )}
@@ -55,6 +57,8 @@ export default async function PedirOrcamentoPage({ searchParams }: { searchParam
             initial={{
               category: tipo && tipo in QUOTE_PRODUCTS ? tipo : "",
               fuel: combustivel && combustivel in FUEL ? combustivel : "",
+              // Vindo da página de um produto: o modelo já fica escrito na mensagem.
+              message: modelo ? fmt(t.product.modelPrefill, { model: modelo.slice(0, 160) }) : "",
             }}
             contact={{ name: profile?.full_name ?? "", phone: profile?.phone ?? "", email: profile?.email ?? "" }}
           />

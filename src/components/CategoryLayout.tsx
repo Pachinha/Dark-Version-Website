@@ -3,7 +3,8 @@ import Navbar from "./Navbar";
 import AnimateIn from "./AnimateIn";
 import Footer from "./Footer";
 import ProductGrid, { Filters, type FilterRow } from "./ProductGrid";
-import type { Product } from "@/lib/catalog";
+import type { Product } from "@/lib/catalog-data";
+import { getI18n } from "@/lib/i18n/server";
 
 interface Props {
   category: string;
@@ -16,7 +17,8 @@ interface Props {
 }
 
 // Página de categoria ao estilo dos sites de referência: cabeçalho curto, filtros simples e grelha de modelos.
-export default function CategoryLayout({ category, title, subtitle, heroImg, products, filters = [], quoteHref = "/pedir-orcamento" }: Props) {
+export default async function CategoryLayout({ category, title, subtitle, heroImg, products, filters = [], quoteHref = "/pedir-orcamento" }: Props) {
+  const { t, href } = await getI18n();
   return (
     <>
       <div style={{ position: "relative", height: "46svh", minHeight: "360px" }}>
@@ -44,8 +46,8 @@ export default function CategoryLayout({ category, title, subtitle, heroImg, pro
           <Filters rows={filters} />
           <ProductGrid products={products} />
           <p style={{ fontSize: "13.5px", color: "rgba(242,236,226,0.5)", margin: "28px 0 0" }}>
-            Estes são alguns dos modelos com que trabalhamos. Não encontra o que procura? Temos acesso a muitos mais —{" "}
-            <Link href={quoteHref} style={{ color: "#e2a276" }}>diga-nos o que precisa</Link>.
+            {t.category.moreModels}{" "}
+            <Link href={href(quoteHref)} style={{ color: "#e2a276" }}>{t.category.tellUs}</Link>.
           </p>
         </section>
 
@@ -54,18 +56,18 @@ export default function CategoryLayout({ category, title, subtitle, heroImg, pro
             <div className="band" style={{ background: "#262019", borderRadius: "20px", padding: "48px 52px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
               <div>
                 <h2 style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "26px", fontWeight: 700, color: "#f2ece2", margin: "0 0 8px" }}>
-                  Visita técnica gratuita
+                  {t.category.visitTitle}
                 </h2>
                 <p style={{ fontSize: "14.5px", color: "rgba(242,236,226,0.60)", margin: 0 }}>
-                  Vamos a sua casa, aconselhamos o equipamento certo e enviamos o orçamento sem compromisso.
+                  {t.category.visitLead}
                 </p>
               </div>
               <Link
-                href={quoteHref}
+                href={href(quoteHref)}
                 className="btn-primary"
                 style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "14px 28px", borderRadius: "999px", textDecoration: "none", whiteSpace: "nowrap" }}
               >
-                Pedir orçamento →
+                {t.common.requestQuoteArrow}
               </Link>
             </div>
           </AnimateIn>

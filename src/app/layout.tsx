@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import CookieConsent from "@/components/CookieConsent";
+import { I18nProvider } from "@/lib/i18n/client";
+import { LOCALE_TAGS } from "@/lib/i18n/config";
+import { clientDict } from "@/lib/i18n/dict";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Lareiras Pachinha — Aquecimento com quem sabe, desde 1992",
-  description:
-    "Lareiras, recuperadores e salamandras a lenha, pellets, gás, elétricas e bioetanol — com aconselhamento técnico e instalação incluída, em Monção.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t.meta.siteTitle, description: t.meta.siteDescription };
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { locale, t } = await getI18n();
   return (
-    <html lang="pt">
+    <html lang={LOCALE_TAGS[locale]}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -24,8 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen">
-        {children}
-        <CookieConsent />
+        <I18nProvider locale={locale} t={clientDict(t)}>
+          {children}
+          <CookieConsent />
+        </I18nProvider>
       </body>
     </html>
   );

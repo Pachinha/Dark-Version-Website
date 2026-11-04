@@ -1,37 +1,42 @@
 import Link from "next/link";
-import { CATEGORIES, FUELS, MAIN_FUELS } from "@/lib/catalog";
-
-const navLinks = [
-  { label: "Sobre nós", href: "/sobre" },
-  { label: "Obras realizadas", href: "/obras" },
-  { label: "Apoio ao cliente", href: "/apoio-ao-cliente" },
-];
-
-const fuelLinks = MAIN_FUELS.map((f) => ({ label: FUELS[f], href: `/produtos?combustivel=${f}` }));
+import LanguageSwitcher from "./LanguageSwitcher";
+import { MAIN_FUELS } from "@/lib/catalog";
+import { getCatalog } from "@/lib/catalog-data";
+import { getI18n } from "@/lib/i18n/server";
 
 // Menu como nos sites de referência: produtos por tipo e por combustível.
 // No telemóvel, o menu abre num painel (<details>, sem JavaScript).
-export default function Navbar() {
+export default async function Navbar() {
+  const { locale, t, href } = await getI18n();
+  const catalog = await getCatalog(locale);
+  const navLinks = [
+    { label: t.nav.about, href: "/sobre" },
+    { label: t.nav.works, href: "/obras" },
+    { label: t.nav.support, href: "/apoio-ao-cliente" },
+  ];
+  const fuelLinks = MAIN_FUELS.map((f) => ({ label: t.catalog.fuels[f], href: href(`/produtos?combustivel=${f}`) }));
+  const categories = catalog.categories.map((c) => ({ slug: c.slug, label: c.name, href: href(c.href) }));
+
   return (
     <nav className="site-nav">
-      <Link href="/" style={{ display: "block", lineHeight: 0 }}>
+      <Link href={href("/")} style={{ display: "block", lineHeight: 0 }}>
         <img src="/images/logo.png" alt="Lareiras Pachinha" className="site-nav-logo" />
       </Link>
 
       <div className="site-nav-links">
         <div className="nav-dropdown">
-          <Link href="/produtos" className="nav-link-hero" aria-haspopup="true">
-            Produtos <span aria-hidden style={{ fontSize: "10px", marginLeft: "2px" }}>▾</span>
+          <Link href={href("/produtos")} className="nav-link-hero" aria-haspopup="true">
+            {t.nav.products} <span aria-hidden style={{ fontSize: "10px", marginLeft: "2px" }}>▾</span>
           </Link>
           <div className="nav-menu nav-menu-cols">
             <div>
-              <span className="nav-menu-head">Por tipo</span>
-              {CATEGORIES.map((c) => (
+              <span className="nav-menu-head">{t.nav.byType}</span>
+              {categories.map((c) => (
                 <Link key={c.slug} href={c.href}>{c.label}</Link>
               ))}
             </div>
             <div>
-              <span className="nav-menu-head">Por combustível</span>
+              <span className="nav-menu-head">{t.nav.byFuel}</span>
               {fuelLinks.map((f) => (
                 <Link key={f.href} href={f.href}>{f.label}</Link>
               ))}
@@ -39,49 +44,52 @@ export default function Navbar() {
           </div>
         </div>
         {navLinks.map((link) => (
-          <Link key={link.label} href={link.href} className="nav-link-hero">
+          <Link key={link.href} href={href(link.href)} className="nav-link-hero">
             {link.label}
           </Link>
         ))}
-        <Link href="/outlet" className="nav-link-hero-outlet">
-          Outlet
+        <Link href={href("/outlet")} className="nav-link-hero-outlet">
+          {t.nav.outlet}
         </Link>
       </div>
 
-      <div className="site-nav-actions">
-        <Link href="/conta" className="nav-link-hero">
-          Área de cliente
-        </Link>
-        <Link href="/pedir-orcamento" className="btn-primary site-nav-cta">
-          Pedir orçamento
-        </Link>
-      </div>
-
-      <details className="mobile-menu">
-        <summary aria-label="Abrir menu">
-          <span />
-          <span />
-          <span />
-        </summary>
-        <div className="mobile-menu-panel">
-          <span className="nav-menu-head">Produtos</span>
-          {CATEGORIES.map((c) => (
-            <Link key={c.slug} href={c.href}>{c.label}</Link>
-          ))}
-          <div className="mobile-menu-fuels">
-            {fuelLinks.map((f) => (
-              <Link key={f.href} href={f.href}>{f.label}</Link>
-            ))}
-          </div>
-          <span className="nav-menu-head">Pachinha</span>
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href}>{link.label}</Link>
-          ))}
-          <Link href="/outlet" style={{ color: "#e2a276" }}>Outlet</Link>
-          <Link href="/conta">Área de cliente</Link>
-          <Link href="/pedir-orcamento" className="btn-primary mobile-menu-cta">Pedir orçamento</Link>
+      <div className="nav-end">
+        <LanguageSwitcher />
+        <div className="site-nav-actions">
+          <Link href="/conta" className="nav-link-hero">
+            {t.common.clientArea}
+          </Link>
+          <Link href={href("/pedir-orcamento")} className="btn-primary site-nav-cta">
+            {t.common.requestQuote}
+          </Link>
         </div>
-      </details>
+
+        <details className="mobile-menu">
+          <summary aria-label={t.nav.openMenu}>
+            <span />
+            <span />
+            <span />
+          </summary>
+          <div className="mobile-menu-panel">
+            <span className="nav-menu-head">{t.nav.products}</span>
+            {categories.map((c) => (
+              <Link key={c.slug} href={c.href}>{c.label}</Link>
+            ))}
+            <div className="mobile-menu-fuels">
+              {fuelLinks.map((f) => (
+                <Link key={f.href} href={f.href}>{f.label}</Link>
+              ))}
+            </div>
+            <span className="nav-menu-head">Pachinha</span>
+            {navLinks.map((link) => (
+              <Link key={link.href} href={href(link.href)}>{link.label}</Link>
+            ))}
+            <Link href={href("/outlet")} style={{ color: "#e2a276" }}>{t.nav.outlet}</Link>
+            <Link href="/conta">{t.common.clientArea}</Link>
+            <Link href={href("/pedir-orcamento")} className="btn-primary mobile-menu-cta">{t.common.requestQuote}</Link>
+          </div>
+        </details>
+      </div>
     </nav>
   );
 }

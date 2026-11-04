@@ -423,6 +423,9 @@ body {
 .legal p, .legal li { font-size: 15px; line-height: 1.7; }
 .legal table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .legal th, .legal td { text-align: left; padding: 8px; border-bottom: 1px solid rgba(38,32,25,0.15); vertical-align: top; }
+/* Palavras compridas (alemão, nomes de cookies) partem em vez de alargar a página */
+.legal { hyphens: auto; overflow-wrap: break-word; }
+.legal th, .legal td { overflow-wrap: anywhere; }
 
 /* ── Painel de administração ── */
 .modal {
@@ -621,6 +624,26 @@ body {
 .pref-fora { background: #f3e6c4; color: #6b4a0e; }
 
 /* ── Fotos do pedido de orçamento ── */
+/* ── Catálogo no painel ── */
+.subtabs .tabs { margin-top: -6px; }
+.subtabs .tab { font-size: 13px; }
+.catalog-filters { align-items: flex-start; margin: 14px 0 18px; }
+.catalog-row { display: flex; gap: 14px; align-items: flex-start; }
+.catalog-thumb { flex-shrink: 0; width: 84px; height: 63px; border-radius: 10px; overflow: hidden; background: rgba(38,32,25,0.08); display: grid; place-items: center; font-size: 11px; color: rgba(38,32,25,0.45); text-decoration: none; }
+.catalog-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.logo-chip { flex-shrink: 0; width: 130px; height: 52px; border-radius: 10px; background: #1f150b; display: grid; place-items: center; padding: 0 10px; overflow: hidden; }
+.logo-chip img { max-width: 110px; width: auto; filter: brightness(0) invert(1); opacity: 0.8; }
+.logo-preview { background: #1f150b; border-radius: 12px; min-height: 84px; display: grid; place-items: center; padding: 16px; }
+.logo-preview img { width: auto; max-width: 100%; filter: brightness(0) invert(1); opacity: 0.72; }
+.category-preview { width: 100%; max-width: 360px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; display: block; }
+.tr-box { border: 1px solid rgba(38,32,25,0.15); border-radius: 12px; padding: 12px 16px; }
+.tr-box summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.tr-box[open] summary { margin-bottom: 8px; }
+.tr-lang { border: 1px solid rgba(38,32,25,0.12); border-radius: 12px; padding: 12px 16px 16px; margin: 10px 0 0; display: flex; flex-direction: column; gap: 12px; }
+.tr-lang legend { font-weight: 700; font-size: 13.5px; padding: 0 6px; }
+.photo-move { position: absolute; left: 6px; bottom: 6px; display: flex; gap: 4px; }
+.photo-thumb .photo-move button { position: static; width: 26px; height: 26px; }
+.photo-main { position: absolute; left: 6px; top: 6px; font-size: 10.5px; font-weight: 700; background: #bf5b2d; color: #fff; padding: 2px 7px; border-radius: 999px; }
 .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
 .photo-thumb { position: relative; margin: 0; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: rgba(38,32,25,0.08); }
 .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -743,15 +766,86 @@ a.photo-thumb { display: block; }
   margin: 12px 20px 4px; text-align: center; background: #bf5b2d; color: #fff; font-weight: 600; border-radius: 999px; padding: 12px 20px;
 }
 
-@media (max-width: 1180px) {
+/* ── Página de produto ── */
+.product-crumbs { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-bottom: 22px; color: rgba(242,236,226,0.4); }
+.product-crumbs a { color: rgba(242,236,226,0.65); text-decoration: none; }
+.product-crumbs a:hover { color: #e2a276; }
+.product-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.product-photo { aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden; background: #2a1a0c; }
+.product-thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.product-thumb { width: 76px; height: 58px; padding: 0; border-radius: 10px; overflow: hidden; cursor: pointer; background: #2a1a0c; border: 2px solid transparent; opacity: 0.7; transition: opacity 0.15s, border-color 0.15s; }
+.product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.product-thumb:hover, .product-thumb-active { opacity: 1; border-color: #e2a276; }
+.product-title { font-family: var(--font-archivo-expanded), system-ui, sans-serif; font-size: 38px; line-height: 1.1; font-weight: 700; margin: 8px 0 14px; color: #f2ece2; overflow-wrap: anywhere; }
+.product-chip { font-size: 12px; font-weight: 600; color: rgba(242,236,226,0.75); background: rgba(242,236,226,0.08); padding: 5px 12px; border-radius: 999px; }
+.product-chip-fire { background: #bf5b2d; color: #fff; }
+.product-specs { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.product-specs > div { background: #2a1a0c; border-radius: 12px; padding: 12px 14px; }
+.product-specs dt { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(242,236,226,0.45); }
+.product-specs dd { margin: 4px 0 0; font-size: 15px; font-weight: 600; color: #f2ece2; }
+@media (max-width: 860px) {
+  .product-layout { grid-template-columns: 1fr; gap: 28px; }
+  .product-title { font-size: 28px; }
+}
+
+/* ── Seletor de língua (bandeiras) ── */
+.nav-end { display: flex; align-items: center; gap: 20px; }
+.lang { position: relative; }
+.lang-button {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 8px; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: #fff;
+  background: rgba(14,9,4,0.45); border: 1px solid rgba(255,255,255,0.18); border-radius: 999px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: border-color 0.2s ease, background 0.2s ease;
+}
+.lang-button:hover, .lang-open .lang-button { border-color: rgba(226,162,118,0.6); background: rgba(14,9,4,0.65); }
+.lang-button:focus-visible, .lang-item:focus-visible { outline: 2px solid #e2a276; outline-offset: 2px; }
+.lang-flag { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: block; box-shadow: 0 0 0 1px rgba(255,255,255,0.25); }
+.lang-chevron { opacity: 0.7; transition: transform 0.2s ease; }
+.lang-open .lang-chevron { transform: rotate(180deg); }
+.lang-menu {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 30; min-width: 210px; padding: 6px;
+  display: flex; flex-direction: column; gap: 2px;
+  background: rgba(26,17,8,0.97); border: 1px solid rgba(226,162,118,0.2); border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.5); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+.lang-open .lang-menu { opacity: 1; visibility: visible; transform: none; }
+.lang-item {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 11px; cursor: pointer;
+  background: transparent; font: inherit; font-size: 14px; font-weight: 500; color: rgba(242,236,226,0.85); text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.lang-item:hover { background: rgba(242,236,226,0.07); color: #fff; }
+.lang-name { flex: 1; }
+.lang-item-code { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: rgba(242,236,226,0.35); }
+.lang-item-active { color: #e2a276; background: rgba(226,162,118,0.1); }
+.lang-item-active .lang-item-code { color: #e2a276; }
+.lang-item-active .lang-name::after { content: " ✓"; }
+/* Páginas claras (área de cliente, orçamento, legais): o cabeçalho é escuro na mesma */
+.shell-header .lang-menu { top: calc(100% + 8px); }
+
+/* Os links nunca partem em duas linhas; com pouco espaço, "Área de cliente" passa para o menu. */
+.site-nav-links a, .site-nav-actions a { white-space: nowrap; }
+@media (max-width: 1360px) {
   .site-nav-links { gap: 22px; }
   .site-nav-actions > .nav-link-hero { display: none; }
 }
+@media (max-width: 1120px) {
+  .site-nav { padding: 20px 28px; }
+  .site-nav-logo { height: 64px; }
+  .site-nav-links { gap: 18px; }
+  .nav-end { gap: 14px; }
+}
 @media (max-width: 1000px) {
+  /* Rodapé: as colunas passam para baixo do logótipo (em alemão os títulos são longos) */
+  .site-footer { flex-direction: column; }
+  .site-footer-cols { flex-wrap: wrap; gap: 28px 40px !important; }
   .site-nav { padding: 14px 20px; }
   .site-nav-logo { height: 56px; }
   .site-nav-links, .site-nav-actions { display: none; }
   .mobile-menu { display: block; }
+  .nav-end { gap: 10px; }
+  .lang-button { height: 44px; border-radius: 12px; padding: 0 10px; }
 }
 
 /* ── Páginas públicas: grelhas e espaçamentos que se adaptam ao ecrã ── */
@@ -767,7 +861,11 @@ a.photo-thumb { display: block; }
   font-family: var(--font-archivo-expanded), system-ui, sans-serif; font-size: 44px; line-height: 1.08;
   font-weight: 700; margin: 0 0 14px; color: #fff;
 }
-.hero-copy { position: absolute; top: 50%; transform: translateY(-50%); left: 52px; max-width: 440px; z-index: 1; display: flex; flex-direction: column; gap: 14px; }
+/* Hero da página inicial: ocupa o ecrã todo e termina na faixa de marcas.
+   O texto está no fluxo (não absoluto) para nunca se sobrepor à faixa em ecrãs baixos. */
+.hero { position: relative; min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; overflow: hidden; background: #1a1108; }
+.hero-stage { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 136px 52px 48px; }
+.hero-copy { max-width: 440px; display: flex; flex-direction: column; gap: 14px; }
 .hero-title { font-family: var(--font-archivo-expanded), system-ui, sans-serif; font-size: 52px; line-height: 1.06; font-weight: 700; margin: 0; color: #fff; }
 
 .fuel-strip { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 22px; }
@@ -777,7 +875,28 @@ a.photo-thumb { display: block; }
 }
 .fuel-strip a:hover { border-color: #e2a276; color: #e2a276; }
 
-.ticker-band { position: relative; overflow: hidden; display: flex; align-items: center; padding: 20px 0; background: #1f150b; border-top: 1px solid rgba(242,236,226,0.06); }
+/* Faixa de marcas (fundo do hero) — translúcida sobre a imagem */
+.ticker-band {
+  position: relative; z-index: 1; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; padding: 22px 0;
+  background: rgba(14,9,4,0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.ticker-label {
+  flex-shrink: 0; padding: 0 22px 0 clamp(16px, 4vw, 52px);
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #e2a276;
+}
+.ticker-track {
+  position: relative; overflow: hidden; flex: 1; min-width: 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 60px, #000 calc(100% - 80px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 60px, #000 calc(100% - 80px), transparent 100%);
+}
+.ticker-item { display: flex; align-items: center; padding: 0 40px; flex-shrink: 0; min-height: 38px; }
+.ticker-logo { height: var(--h, 30px); width: auto; display: block; filter: brightness(0) invert(1); opacity: 0.72; }
+.ticker-name {
+  font-family: var(--font-archivo-expanded), system-ui, sans-serif; font-size: 15px; font-weight: 700;
+  letter-spacing: 0.02em; color: rgba(255,255,255,0.72); white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) { .ticker-set { animation-duration: 160s; } }
 
 @media (max-width: 1100px) {
   .grid-categories { grid-template-columns: repeat(3, 1fr); }
@@ -793,7 +912,13 @@ a.photo-thumb { display: block; }
   .grid-split .split-media { min-height: 240px; }
   .page-hero-copy { left: 16px; right: 16px; padding-top: 70px; }
   .page-hero-title { font-size: 30px; }
-  .hero-copy { left: 16px; right: 16px; max-width: none; top: auto; bottom: 28px; transform: none; }
+  .hero-stage { justify-content: flex-end; padding: 100px 16px 28px; }
+  .hero-copy { max-width: none; }
+  .ticker-band { padding: 14px 0; }
+  .ticker-label { font-size: 9px; padding-right: 14px; }
+  .ticker-item { padding: 0 24px; min-height: 30px; }
+  .ticker-logo { height: calc(var(--h, 30px) * 0.75); }
+  .ticker-name { font-size: 13px; }
   .hero-title { font-size: 36px; }
   .hero-stats > div { padding-left: 16px !important; padding-right: 16px !important; }
   .hero-stats > div:first-child { padding-left: 0 !important; }

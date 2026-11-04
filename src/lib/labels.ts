@@ -89,19 +89,41 @@ export const CONTACT_PREFERENCE: Record<string, string> = {
   email: "Email",
 };
 
+// Frases da disponibilidade. Em português por defeito; o site público passa as da língua do visitante.
+export type AvailabilityWords = {
+  weekdays: Record<string, string>;
+  periods: Record<string, string>;
+  anyWeekday: string;
+  anyDayIn: string; // "Qualquer dia, de {period}"
+  allDay: string; // "{day} (todo o dia)"
+  dayIn: string; // "{day} de {period}"
+};
+
+const PT_AVAILABILITY: AvailabilityWords = {
+  weekdays: WEEKDAYS,
+  periods: Object.fromEntries(Object.entries(PERIODS).map(([k, v]) => [k, v.label])),
+  anyWeekday: "Qualquer dia útil",
+  anyDayIn: "Qualquer dia, de {period}",
+  allDay: "{day} (todo o dia)",
+  dayIn: "{day} de {period}",
+};
+
+const fill = (text: string, vars: Record<string, string>) => text.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+
 // {seg-manha, seg-tarde, qua-manha} → "Segunda (todo o dia) · Quarta de manhã"
-export function describeAvailability(slots: string[] | null | undefined) {
-  if (!slots?.length || slots.length === AVAILABILITY_SLOTS.length) return "Qualquer dia útil";
+export function describeAvailability(slots: string[] | null | undefined, words: AvailabilityWords = PT_AVAILABILITY) {
+  if (!slots?.length || slots.length === AVAILABILITY_SLOTS.length) return words.anyWeekday;
   const periods = Object.keys(PERIODS);
   const allDaysFor = periods.find((p) => Object.keys(WEEKDAYS).every((d) => slots.includes(`${d}-${p}`)));
   if (allDaysFor && slots.length === Object.keys(WEEKDAYS).length) {
-    return `Qualquer dia, de ${PERIODS[allDaysFor].label.toLowerCase()}`;
+    return fill(words.anyDayIn, { period: words.periods[allDaysFor].toLowerCase() });
   }
-  return Object.entries(WEEKDAYS)
-    .map(([d, day]) => {
+  return Object.keys(WEEKDAYS)
+    .map((d) => {
       const chosen = periods.filter((p) => slots.includes(`${d}-${p}`));
       if (!chosen.length) return null;
-      return chosen.length === periods.length ? `${day} (todo o dia)` : `${day} de ${PERIODS[chosen[0]].label.toLowerCase()}`;
+      const day = words.weekdays[d];
+      return chosen.length === periods.length ? fill(words.allDay, { day }) : fill(words.dayIn, { day, period: words.periods[chosen[0]].toLowerCase() });
     })
     .filter(Boolean)
     .join(" · ");
@@ -134,9 +156,9 @@ export const ROLE_LABEL: Record<string, string> = {
   admin: "Administrador",
 };
 
-export function formatDate(value: string | null | undefined, withTime = false) {
+export function formatDate(value: string | null | undefined, withTime = false, localeTag = "pt-PT") {
   if (!value) return "—";
-  return new Date(value).toLocaleString("pt-PT", {
+  return new Date(value).toLocaleString(localeTag, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

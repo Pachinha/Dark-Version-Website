@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { isInPortugal } from "@/lib/geo";
+import { useI18n } from "@/lib/i18n/client";
 
 // Geocoding via Photon (OpenStreetMap data, operated by Komoot in the EU).
 // Only real, existing places in Portugal can be chosen — no free-typed addresses.
@@ -49,13 +50,15 @@ function toPlace(f: PhotonFeature, source: Place["source"], at?: { lat: number; 
 // allowGps=false no painel: quem escreve é a equipa, a localização dela não interessa.
 export default function PlaceSearch({
   onSelect,
-  placeholder = "Ex.: Rua da Lagoa, Monção",
+  placeholder,
   allowGps = true,
 }: {
   onSelect: (place: Place) => void;
   placeholder?: string;
   allowGps?: boolean;
 }) {
+  const { t } = useI18n();
+  const tp = t.place;
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Place[]>([]);
   const [status, setStatus] = useState("");
@@ -74,16 +77,16 @@ export default function PlaceSearch({
         const data: { features: PhotonFeature[] } = await res.json();
         const places = data.features.map((f) => toPlace(f, "search")).filter((p): p is Place => p !== null);
         setResults(places);
-        setStatus(places.length ? "" : "Nenhuma morada encontrada em Portugal. Tente rua + localidade.");
+        setStatus(places.length ? "" : tp.noResults);
       } catch (e) {
-        if ((e as Error).name !== "AbortError") setStatus("Pesquisa indisponível de momento.");
+        if ((e as Error).name !== "AbortError") setStatus(tp.unavailable);
       }
     }, 350);
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, searching]);
+  }, [query, searching, tp]);
 
   function choose(place: Place) {
     setQuery("");
@@ -94,15 +97,15 @@ export default function PlaceSearch({
 
   function shareLocation() {
     if (!("geolocation" in navigator)) {
-      setStatus("O seu navegador não permite partilhar a localização. Pesquise a morada.");
+      setStatus(tp.noGeo);
       return;
     }
-    setStatus("A obter a sua localização…");
+    setStatus(tp.locating);
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         const at = { lat: coords.latitude, lng: coords.longitude };
         if (!isInPortugal(at.lat, at.lng)) {
-          setStatus("A sua localização não está em Portugal. Pesquise a morada.");
+          setStatus(tp.notInPortugal);
           return;
         }
         try {
@@ -112,10 +115,10 @@ export default function PlaceSearch({
           if (!place) throw new Error();
           choose(place);
         } catch {
-          setStatus("Não foi possível identificar a morada. Pesquise-a manualmente.");
+          setStatus(tp.reverseFailed);
         }
       },
-      () => setStatus("Localização não partilhada. Pode pesquisar a morada em vez disso."),
+      () => setStatus(tp.denied),
       { enableHighAccuracy: true, timeout: 15000 },
     );
   }
@@ -125,20 +128,19 @@ export default function PlaceSearch({
       {allowGps && (
         <>
           <button type="button" className="btn btn-ink" onClick={shareLocation}>
-            📍 Usar a minha localização atual
+            {tp.useLocation}
           </button>
           <p className="hint" style={{ margin: 0 }}>
-            A localização é lida uma única vez, só para esta morada — nunca seguimos a sua posição.
-            Se preferir não partilhar, pesquise a morada abaixo.
+            {tp.locationNote}
           </p>
         </>
       )}
       <label className="field">
-        Pesquisar morada
+        {tp.search}
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
+          placeholder={placeholder ?? tp.placeholder}
           autoComplete="off"
           role="combobox"
           aria-expanded={visibleResults.length > 0}
@@ -162,7 +164,7 @@ export default function PlaceSearch({
         </ul>
       )}
       {status && <p className="hint" role="status" style={{ margin: 0 }}>{status}</p>}
-      <p className="hint" style={{ margin: 0 }}>Pesquisa de moradas © contribuidores do OpenStreetMap, via Photon (Komoot).</p>
+      <p className="hint" style={{ margin: 0 }}>{tp.credit}</p>
     </>
   );
 }

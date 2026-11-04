@@ -3,57 +3,60 @@ import Navbar from "@/components/Navbar";
 import AnimateIn from "@/components/AnimateIn";
 import Footer from "@/components/Footer";
 import { FOUNDED, yearsInBusiness } from "@/lib/company";
-import { IMPORTED_BRANDS, MULTI_BRANDS } from "@/lib/brands";
+import { getCatalog } from "@/lib/catalog-data";
+import { fmt } from "@/lib/i18n/config";
+import { getI18n, pageMetadata } from "@/lib/i18n/server";
 
-export const metadata = { title: "Sobre nós — Lareiras Pachinha" };
-
-// Factos verificados online (out. 2026). Fontes nos comentários de cada bloco.
-const timeline = [
-  { year: String(FOUNDED), text: "Nasce a Lareiras Pachinha, em Monção." }, // Crunchbase — a confirmar com a Sandra
-  { year: "2007", text: "Criada a Recuperadores Pachinha: fabrico próprio de recuperadores de calor e de recuperadores com caldeira." }, // Racius (constituída 09/03/2007)
-  { year: "2008", text: "Nasce a GlammFire, a empresa mais recente do Grupo Pachinha, dedicada a lareiras de design." }, // Homify; glammfire.com
-  { year: "2009", text: "Primeiro prémio internacional: Flamme d'Or de la Cheminée à l'Éthanol, da revista francesa Cheminées Magazine." },
-  { year: "2013", text: "Lareiras do grupo presentes em 52 países." }, // glammfire.com — cronologia
-  { year: "2017", text: "A' Design Award (prata), em Itália, com a lareira Kivo." },
-  { year: "2026", text: "Prémio Inovação na Internacionalização (COTEC Portugal e Santander), categoria Pequena Europa." },
-];
-
-const awards = [
-  { title: "Flamme d'Or de la Cheminée à l'Éthanol", by: "Cheminées Magazine · França", year: "2009" },
-  { title: "Flamme d'Or des Nouvelles Énergies", by: "Cheminées Magazine · França", year: "2010" },
-  { title: "A' Design Award — Prata", by: "Itália · lareira Kivo", year: "2017" },
-  { title: "Prémio Inovação na Internacionalização", by: "COTEC Portugal e Santander · Pequena Europa", year: "2026" },
-  { title: "Estatuto PME Líder", by: "IAPMEI", year: "GlammFire" },
-  { title: "Certificação ISO 9001:2015", by: "Gestão da qualidade", year: "GlammFire" },
-];
-
-const stats = [
-  { value: String(FOUNDED), label: "o ano em que começámos" },
-  { value: `${yearsInBusiness()}`, label: "anos de experiência" },
-  { value: `${IMPORTED_BRANDS.length + MULTI_BRANDS.length}`, label: "marcas que comercializamos" },
-  { value: "50+", label: "países com lareiras do grupo" },
-];
+export const generateMetadata = () => pageMetadata((t) => t.about.meta);
 
 const h2 = { fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "32px", fontWeight: 700, margin: "0 0 16px", color: "#f2ece2", lineHeight: 1.15 } as const;
 const eyebrow = { fontSize: "11px", fontWeight: 700, letterSpacing: "0.13em", textTransform: "uppercase", color: "#e2a276", display: "block", marginBottom: "12px" } as const;
 const body = { fontSize: "15px", lineHeight: 1.7, color: "rgba(242,236,226,0.65)", margin: "0 0 14px" } as const;
 
-export default function SobrePage() {
+export default async function SobrePage() {
+  const { locale, t, href } = await getI18n();
+  const { brands } = await getCatalog(locale);
+  const a = t.about;
+  // Factos verificados online (out. 2026): Crunchbase (fundação, a confirmar com a Sandra), Racius (2007),
+  // Homify e glammfire.com (2008, 2013), Cheminées Magazine, A' Design Award, COTEC.
+  const timeline = [
+    { year: String(FOUNDED), text: a.timeline.founded },
+    { year: "2007", text: a.timeline.y2007 },
+    { year: "2008", text: a.timeline.y2008 },
+    { year: "2009", text: a.timeline.y2009 },
+    { year: "2013", text: a.timeline.y2013 },
+    { year: "2017", text: a.timeline.y2017 },
+    { year: "2026", text: a.timeline.y2026 },
+  ];
+  const awards = [
+    { title: "Flamme d'Or de la Cheminée à l'Éthanol", by: a.awards.flammeEthanolBy, year: "2009" },
+    { title: "Flamme d'Or des Nouvelles Énergies", by: a.awards.flammeEnergiesBy, year: "2010" },
+    { title: a.awards.designAward, by: a.awards.designAwardBy, year: "2017" },
+    { title: a.awards.innovation, by: a.awards.innovationBy, year: "2026" },
+    { title: a.awards.pmeLider, by: "IAPMEI", year: "GlammFire" },
+    { title: a.awards.iso, by: a.awards.isoBy, year: "GlammFire" },
+  ];
+  const stats = [
+    { value: String(FOUNDED), label: a.stats.founded },
+    { value: `${yearsInBusiness()}`, label: a.stats.years },
+    { value: `${brands.length}`, label: a.stats.brands },
+    { value: "50+", label: a.stats.countries },
+  ];
   return (
     <>
       {/* Hero */}
       <div style={{ position: "relative", height: "70svh" }}>
         <section style={{ height: "70svh", position: "relative", overflow: "hidden" }}>
-          <img src="/images/sobre/moncao.jpg" alt="Vista aérea de Monção e do rio Minho" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} loading="eager" />
+          <img src="/images/sobre/moncao.jpg" alt={a.heroAlt} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} loading="eager" />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(14,9,4,0.92) 0%, rgba(14,9,4,0.80) 42%, rgba(14,9,4,0.35) 75%, rgba(14,9,4,0.2) 100%)" }} />
           <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "30%", background: "linear-gradient(to bottom, transparent, #1a1108)" }} />
           <div className="hero-inline" style={{ position: "absolute", top: "55%", transform: "translateY(-50%)", left: "52px", maxWidth: "560px", zIndex: 1 }}>
-            <span style={eyebrow}>Sobre nós</span>
+            <span style={eyebrow}>{a.eyebrow}</span>
             <h1 className="hero-inline-title" style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "48px", lineHeight: 1.06, fontWeight: 700, margin: "0 0 18px", color: "#fff" }}>
-              Há {yearsInBusiness()} anos a aquecer casas, a partir de Monção.
+              {fmt(a.title, { years: yearsInBusiness() })}
             </h1>
             <p style={{ fontSize: "15px", lineHeight: 1.65, color: "rgba(255,255,255,0.7)", margin: 0 }}>
-              Somos do Alto Minho. Escolhemos, instalamos e mantemos o equipamento certo para cada casa, com equipa própria.
+              {a.lead}
             </p>
           </div>
         </section>
@@ -78,21 +81,11 @@ export default function SobrePage() {
         {/* A nossa história */}
         <section className="sec" style={{ padding: "80px 52px 0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(340px, 100%), 1fr))", gap: "56px", alignItems: "start" }}>
           <AnimateIn>
-            <span style={eyebrow}>A nossa história</span>
-            <h2 style={h2}>De importadores a fabricantes</h2>
-            <p style={body}>
-              A Lareiras Pachinha nasceu em {FOUNDED}, em Monção. Desde cedo trabalhamos com marcas francesas e ainda hoje somos
-              importadores da Cheminées Philippe e da Godin.
-            </p>
-            <p style={body}>
-              Com o tempo passámos também a fabricar. Em 2007 nasceu a Recuperadores Pachinha, com fabrico próprio de recuperadores de
-              calor. Em 2008 o grupo criou a GlammFire, que desenha e fabrica em Monção lareiras de design vendidas em mais de 50 países.
-            </p>
-            <p style={body}>
-              Somos multimarca: trabalhamos com mais de {MULTI_BRANDS.length} marcas de lareiras, recuperadores e salamandras a lenha, pellets,
-              gás, elétricas e bioetanol. Ajudamos cada cliente a escolher, instalamos com a nossa equipa e continuamos presentes na
-              manutenção.
-            </p>
+            <span style={eyebrow}>{a.historyEyebrow}</span>
+            <h2 style={h2}>{a.historyTitle}</h2>
+            <p style={body}>{fmt(a.history1, { year: FOUNDED })}</p>
+            <p style={body}>{a.history2}</p>
+            <p style={body}>{fmt(a.history3, { count: brands.filter((b) => !b.imported).length })}</p>
           </AnimateIn>
 
           <AnimateIn delay={100}>
@@ -111,10 +104,10 @@ export default function SobrePage() {
         {/* Prémios */}
         <section className="sec" style={{ padding: "64px 52px 0" }}>
           <AnimateIn>
-            <span style={eyebrow}>Prémios e distinções</span>
-            <h2 style={h2}>Reconhecidos lá fora</h2>
+            <span style={eyebrow}>{a.awardsEyebrow}</span>
+            <h2 style={h2}>{a.awardsTitle}</h2>
             <p style={{ ...body, maxWidth: "62ch", marginBottom: "28px" }}>
-              O trabalho do Grupo Pachinha, através da GlammFire, foi distinguido em França, em Itália e em Portugal.
+              {a.awardsLead}
             </p>
           </AnimateIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "14px" }}>
@@ -141,20 +134,14 @@ export default function SobrePage() {
           <AnimateIn>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(340px, 100%), 1fr))", borderRadius: "20px", overflow: "hidden", background: "#2a1a0c" }}>
               <div className="band" style={{ padding: "52px 48px" }}>
-                <span style={eyebrow}>Grupo Pachinha</span>
-                <h2 style={h2}>Fabricamos em Monção para o mundo</h2>
-                <p style={body}>
-                  A GlammFire, do Grupo Pachinha, fabrica em Monção lareiras a bioetanol, elétricas e de exterior, numa fábrica com mais
-                  de 5.500 m².
-                </p>
-                <p style={body}>
-                  As suas lareiras estão em casas e hotéis em mais de 50 países, e já estiveram no World Economic Forum e em desfiles
-                  da Semana da Moda de Paris.
-                </p>
+                <span style={eyebrow}>{a.groupEyebrow}</span>
+                <h2 style={h2}>{a.groupTitle}</h2>
+                <p style={body}>{a.group1}</p>
+                <p style={body}>{a.group2}</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: "360px" }}>
-                <img src="/images/sobre/fabrica.jpg" alt="Fábrica do grupo em Monção" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
-                <img src="/images/sobre/glammfire-kivo.jpg" alt="Lareira a bioetanol Kivo, premiada com o A' Design Award" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
+                <img src="/images/sobre/fabrica.jpg" alt={a.factoryAlt} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
+                <img src="/images/sobre/glammfire-kivo.jpg" alt={a.kivoAlt} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
               </div>
             </div>
           </AnimateIn>
@@ -165,15 +152,15 @@ export default function SobrePage() {
           <AnimateIn>
             <div className="band" style={{ background: "#262019", borderRadius: "20px", padding: "48px 52px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
               <div>
-                <h2 style={{ ...h2, fontSize: "26px", margin: "0 0 8px" }}>Venha conhecer-nos</h2>
-                <p style={{ fontSize: "14.5px", color: "rgba(242,236,226,0.60)", margin: 0 }}>Veja as obras que já fizemos ou peça-nos um orçamento sem compromisso.</p>
+                <h2 style={{ ...h2, fontSize: "26px", margin: "0 0 8px" }}>{a.ctaTitle}</h2>
+                <p style={{ fontSize: "14.5px", color: "rgba(242,236,226,0.60)", margin: 0 }}>{a.ctaLead}</p>
               </div>
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                <Link href="/obras" className="btn-outline" style={{ color: "#fff", fontSize: "14px", fontWeight: 600, padding: "13px 24px", borderRadius: "999px", textDecoration: "none", border: "1.5px solid rgba(255,255,255,0.45)" }}>
-                  Obras realizadas
+                <Link href={href("/obras")} className="btn-outline" style={{ color: "#fff", fontSize: "14px", fontWeight: 600, padding: "13px 24px", borderRadius: "999px", textDecoration: "none", border: "1.5px solid rgba(255,255,255,0.45)" }}>
+                  {t.nav.works}
                 </Link>
-                <Link href="/apoio-ao-cliente" className="btn-primary" style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "13px 24px", borderRadius: "999px", textDecoration: "none" }}>
-                  Fazer o meu pedido →
+                <Link href={href("/apoio-ao-cliente")} className="btn-primary" style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "13px 24px", borderRadius: "999px", textDecoration: "none" }}>
+                  {t.common.makeRequest}
                 </Link>
               </div>
             </div>

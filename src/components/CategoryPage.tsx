@@ -1,34 +1,28 @@
+import { notFound } from "next/navigation";
 import CategoryLayout from "./CategoryLayout";
 import { fuelFilter } from "./ProductGrid";
-import { PRODUCTS, categoryBySlug, isFuel, quoteHref, type CategorySlug } from "@/lib/catalog";
+import { isFuel, quoteHref } from "@/lib/catalog";
+import { getCatalog } from "@/lib/catalog-data";
+import { getI18n } from "@/lib/i18n/server";
 
-export type CategorySearchParams = Promise<{ combustivel?: string }>;
-
-// Página de um tipo de equipamento (/lareiras, /recuperadores, ...) com filtro por combustível.
-export default async function CategoryPage({
-  slug,
-  title,
-  subtitle,
-  searchParams,
-}: {
-  slug: CategorySlug;
-  title: string;
-  subtitle: string;
-  searchParams: CategorySearchParams;
-}) {
-  const { combustivel } = await searchParams;
-  const category = categoryBySlug(slug)!;
-  const all = PRODUCTS.filter((p) => p.category === slug);
+// Página de um tipo de equipamento (/produtos/lareiras, …) com filtro por combustível.
+// Nome, frase e imagem da categoria vêm do painel (Catálogo → Categorias).
+export default async function CategoryPage({ slug, combustivel }: { slug: string; combustivel?: string }) {
+  const { locale, t, href } = await getI18n();
+  const { categories, products } = await getCatalog(locale);
+  const category = categories.find((c) => c.slug === slug);
+  if (!category) notFound();
+  const all = products.filter((p) => p.category.slug === slug && !p.outlet);
   const fuel = isFuel(combustivel) && all.some((p) => p.fuel === combustivel) ? combustivel : undefined;
 
   return (
     <CategoryLayout
-      category={category.label}
-      title={title}
-      subtitle={subtitle}
-      heroImg={category.img}
+      category={category.name}
+      title={category.title || category.name}
+      subtitle={category.subtitle}
+      heroImg={category.image || "/images/hero.png"}
       products={fuel ? all.filter((p) => p.fuel === fuel) : all}
-      filters={[fuelFilter(all, category.href, fuel)]}
+      filters={[fuelFilter(t, href, all, category.href, fuel)]}
       quoteHref={quoteHref(slug, fuel)}
     />
   );

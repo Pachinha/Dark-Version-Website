@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { COUNTRIES, byIso, national, split } from "@/lib/phone";
+import { fmt } from "@/lib/i18n/config";
+import { useI18n } from "@/lib/i18n/client";
 
 // Telefone com indicativo do país. Por defeito: o país da rede de onde se está a aceder
 // (/api/pais, pelo IP); se não se souber, Portugal. (O idioma do telemóvel não serve:
@@ -43,7 +45,7 @@ export default function PhoneInput({
   defaultValue = "",
   onChange,
   required,
-  label = "Número de telefone",
+  label,
 }: {
   name?: string; // formulário normal: input escondido com o número completo
   value?: string; // modo controlado (o formulário guarda o número completo)
@@ -52,6 +54,10 @@ export default function PhoneInput({
   required?: boolean;
   label?: string;
 }) {
+  const { locale, t } = useI18n();
+  // Nomes dos países na língua da página (o browser já os sabe); em português, os da lista.
+  const regionNames = useMemo(() => (locale === "pt" ? null : new Intl.DisplayNames([locale], { type: "region" })), [locale]);
+  const countryName = (c: { iso: string; name: string }) => regionNames?.of(c.iso) ?? c.name;
   const id = useId();
   const listId = `${id}-paises`;
   const initial = split(value ?? defaultValue);
@@ -86,8 +92,10 @@ export default function PhoneInput({
   const list = useMemo(() => {
     const q = plain(query.trim().replace(/^\+/, ""));
     if (!q) return COUNTRIES;
-    return COUNTRIES.filter((c) => plain(c.name).includes(q) || c.dial.startsWith(q) || c.iso.toLowerCase() === q);
-  }, [query]);
+    return COUNTRIES.filter(
+      (c) => plain(regionNames?.of(c.iso) ?? "").includes(q) || plain(c.name).includes(q) || c.dial.startsWith(q) || c.iso.toLowerCase() === q,
+    );
+  }, [query, regionNames]);
 
   const country = byIso(iso) ?? COUNTRIES[0];
   const digits = rest.replace(/\D/g, "");
@@ -135,7 +143,7 @@ export default function PhoneInput({
       <button
         type="button"
         className="phone-country"
-        aria-label={`Indicativo: ${country.name} +${country.dial}. Mudar país`}
+        aria-label={fmt(t.phone.changeCountry, { country: countryName(country), dial: country.dial })}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => {
@@ -155,11 +163,11 @@ export default function PhoneInput({
         type="tel"
         inputMode="tel"
         autoComplete="tel-national"
-        aria-label={label}
+        aria-label={label ?? t.phone.label}
         value={rest}
         required={required}
         maxLength={20}
-        placeholder={country.iso === "PT" ? "912 345 678" : "Número de telefone"}
+        placeholder={country.iso === "PT" ? "912 345 678" : t.phone.label}
         onChange={(e) => update(country.iso, e.target.value)}
       />
       {name && <input type="hidden" name={name} value={full} />}
@@ -169,8 +177,8 @@ export default function PhoneInput({
           <input
             className="phone-search"
             autoFocus
-            placeholder="Pesquisar país ou indicativo"
-            aria-label="Pesquisar país"
+            placeholder={t.phone.searchCountry}
+            aria-label={t.phone.searchAria}
             aria-controls={listId}
             value={query}
             onChange={(e) => {
@@ -179,7 +187,7 @@ export default function PhoneInput({
             }}
             onKeyDown={onListKey}
           />
-          <ul id={listId} role="listbox" aria-label="Países" className="phone-list">
+          <ul id={listId} role="listbox" aria-label={t.phone.countries} className="phone-list">
             {list.map((c, i) => (
               <li
                 key={c.iso}
@@ -191,11 +199,11 @@ export default function PhoneInput({
                 onClick={() => choose(c.iso)}
               >
                 <Flag iso={c.iso} />
-                <span className="phone-name">{c.name}</span>
+                <span className="phone-name">{countryName(c)}</span>
                 <span className="phone-dial">+{c.dial}</span>
               </li>
             ))}
-            {!list.length && <li className="phone-empty">Nenhum país encontrado.</li>}
+            {!list.length && <li className="phone-empty">{t.phone.noCountry}</li>}
           </ul>
         </div>
       )}

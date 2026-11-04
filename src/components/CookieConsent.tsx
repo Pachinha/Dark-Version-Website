@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { useI18n } from "@/lib/i18n/client";
 
 // Consent is stored in a first-party cookie (strictly necessary — it remembers the choice).
 // Google Analytics is NOT loaded at all until the visitor accepts.
@@ -49,6 +50,7 @@ function clearAnalyticsCookies() {
 }
 
 export default function CookieConsent() {
+  const { t, href } = useI18n();
   // "pending" on the server and during hydration, so nothing flashes or mismatches.
   const choice = useSyncExternalStore<Choice | "pending">(subscribe, readChoice, () => "pending");
   const [reopened, setReopened] = useState(false);
@@ -83,17 +85,15 @@ export default function CookieConsent() {
 
       {open && (
         <div className="cookie-banner" role="dialog" aria-modal="false" aria-labelledby="cookie-title">
-          <h2 id="cookie-title">🍪 Cookies</h2>
+          <h2 id="cookie-title">🍪 {t.cookies.title}</h2>
           <p className="muted" style={{ margin: 0 }}>
-            Usamos cookies essenciais para o site funcionar (por exemplo, manter a sessão iniciada). Com a sua
-            autorização, usamos também o Google Analytics para perceber como o site é utilizado e melhorá-lo.
-            Pode mudar de ideias a qualquer momento em “Definições de cookies”, no rodapé.{" "}
-            <a href="/cookies" className="link" style={{ color: "#bf5b2d", fontWeight: 600 }}>Saber mais</a>
+            {t.cookies.text}{" "}
+            <a href={href("/cookies")} className="link" style={{ color: "#bf5b2d", fontWeight: 600 }}>{t.cookies.learnMore}</a>
           </p>
           {/* Recusar e aceitar com o mesmo destaque, como exige a CNPD */}
           <div className="cookie-actions">
-            <button className="btn btn-ink" onClick={() => decide("denied")}>Recusar</button>
-            <button className="btn btn-ink" onClick={() => decide("granted")}>Aceitar</button>
+            <button className="btn btn-ink" onClick={() => decide("denied")}>{t.cookies.decline}</button>
+            <button className="btn btn-ink" onClick={() => decide("granted")}>{t.cookies.accept}</button>
           </div>
         </div>
       )}

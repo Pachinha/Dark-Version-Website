@@ -1,14 +1,9 @@
-import CategoryPage, { type CategorySearchParams } from "@/components/CategoryPage";
+import { permanentRedirect } from "next/navigation";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata = { title: "Fogões — Lareiras Pachinha" };
-
-export default function FogoesPage({ searchParams }: { searchParams: CategorySearchParams }) {
-  return (
-    <CategoryPage
-      slug="fogoes"
-      title="Fogões que aquecem e cozinham."
-      subtitle="Fogões de cozinha a lenha, entre a tradição e o design atual."
-      searchParams={searchParams}
-    />
-  );
+// A página passou para /produtos/fogoes (as categorias agora são geridas no painel).
+export default async function Page({ searchParams }: { searchParams: Promise<{ combustivel?: string }> }) {
+  const { href } = await getI18n();
+  const { combustivel } = await searchParams;
+  permanentRedirect(href(`/produtos/fogoes${combustivel ? `?combustivel=${encodeURIComponent(combustivel)}` : ""}`));
 }

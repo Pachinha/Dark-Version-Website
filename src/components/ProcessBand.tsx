@@ -1,23 +1,19 @@
 import Link from "next/link";
 import AnimateIn from "./AnimateIn";
+import { getI18n } from "@/lib/i18n/server";
 
-const steps = [
-  { num: "01", title: "Fale connosco",   body: "Faça o seu pedido online, por telefone ou no showroom." },
-  { num: "02", title: "Visita técnica",  body: "Gratuita no Alto Minho. Avaliamos o espaço e a chaminé." },
-  { num: "03", title: "Orçamento claro", body: "Equipamento, tubagem e mão-de-obra, sem surpresas." },
-  { num: "04", title: "Instalação",      body: "Equipa própria, obra limpa e equipamento a funcionar." },
-];
-
-export default function ProcessBand() {
+export default async function ProcessBand() {
+  const { t, href } = await getI18n();
+  const steps = t.home.steps.map((s, i) => ({ ...s, num: String(i + 1).padStart(2, "0") }));
   return (
     <section className="sec" style={{ background: "#1a1108", padding: "0 52px 80px" }}>
       <div className="band" style={{ background: "#262019", color: "#f2ece2", borderRadius: "20px", padding: "56px 52px" }}>
         <AnimateIn className="head-row" style={{ marginBottom: "40px" }}>
           <h2 className="sec-title" style={{ fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif", fontSize: "30px", fontWeight: 700, margin: 0, color: "#f2ece2" }}>
-            Do orçamento à chama
+            {t.home.processTitle}
           </h2>
-          <Link href="/pedir-orcamento" style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
-            Pedir orçamento →
+          <Link href={href("/pedir-orcamento")} style={{ fontSize: "13px", fontWeight: 600, color: "#e2a276", textDecoration: "none" }}>
+            {t.common.requestQuoteArrow}
           </Link>
         </AnimateIn>
 

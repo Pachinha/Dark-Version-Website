@@ -1,54 +1,32 @@
-import { MULTI_BRANDS } from "@/lib/brands";
+import { getCatalog, type Brand } from "@/lib/catalog-data";
+import { getI18n } from "@/lib/i18n/server";
 
-function BrandItem({ name }: { name: string }) {
+function BrandItem({ brand }: { brand: Brand }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", padding: "0 34px", flexShrink: 0 }}>
-      <span
-        style={{
-          fontFamily: "var(--font-archivo-expanded), system-ui, sans-serif",
-          fontSize: "15px",
-          fontWeight: 700,
-          letterSpacing: "0.02em",
-          color: "rgba(255,255,255,0.72)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {name}
-      </span>
+    <div className="ticker-item">
+      {brand.logo ? (
+        // --h: altura afinada por logo (no painel); o CSS reduz em ecrãs pequenos.
+        <img src={brand.logo} alt={brand.name} className="ticker-logo" style={{ "--h": `${brand.logoHeight}px` } as React.CSSProperties} />
+      ) : (
+        // Marca ainda sem logótipo: o nome escrito, até a Sandra carregar o logo.
+        <span className="ticker-name">{brand.name}</span>
+      )}
     </div>
   );
 }
 
-export default function BrandTicker() {
+// Faixa "Multimarcas" no fundo do hero da página inicial: marca a separação
+// entre o hero e o resto do site, como no desenho original.
+// Marcas e ordem vêm do painel (Catálogo → Marcas, "Mostrar na faixa").
+export default async function BrandTicker() {
+  const { locale, t } = await getI18n();
+  const brands = (await getCatalog(locale)).brands.filter((b) => b.inTicker);
+  if (!brands.length) return null;
   return (
-    // Faixa "Multimarcas" no rodapé de todas as páginas (pedido da Sandra, 28/10/2026).
-    <div className="ticker-band" aria-label="Marcas com que trabalhamos">
-      {/* Etiqueta fixa à esquerda */}
-      <span
-        style={{
-          position: "relative",
-          zIndex: 3,
-          flexShrink: 0,
-          padding: "0 22px 0 clamp(16px, 4vw, 52px)",
-          fontSize: "10px",
-          fontWeight: 700,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          color: "#e2a276",
-          background: "linear-gradient(to right, #1f150b 75%, transparent 100%)",
-          alignSelf: "stretch",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        Multimarcas
-      </span>
+    <div className="ticker-band" aria-label={t.hero.tickerAria}>
+      <span className="ticker-label">{t.hero.tickerLabel}</span>
 
-      <div style={{ position: "relative", overflow: "hidden", flex: 1 }}>
-        {/* Fade edges */}
-        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "60px", zIndex: 2, background: "linear-gradient(to right, #1f150b 0%, transparent 100%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "80px", zIndex: 2, background: "linear-gradient(to left, #1f150b 0%, transparent 100%)", pointerEvents: "none" }} />
-
+      <div className="ticker-track">
         {/*
           Two identical sets side-by-side, each animating translateX(-100%) of its own width.
           Set1 slides from [0,W] to [-W,0] and resets off-screen.
@@ -57,10 +35,10 @@ export default function BrandTicker() {
         */}
         <div style={{ display: "flex" }}>
           <div className="ticker-set">
-            {MULTI_BRANDS.map((name) => <BrandItem key={name} name={name} />)}
+            {brands.map((brand) => <BrandItem key={brand.slug} brand={brand} />)}
           </div>
           <div className="ticker-set" aria-hidden="true">
-            {MULTI_BRANDS.map((name) => <BrandItem key={name} name={name} />)}
+            {brands.map((brand) => <BrandItem key={brand.slug} brand={brand} />)}
           </div>
         </div>
       </div>

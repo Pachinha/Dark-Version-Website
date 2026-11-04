@@ -22,6 +22,8 @@ import { FREE_VISIT_MUNICIPALITIES, OTHER_MUNICIPALITY, isInFreeArea } from "@/l
 import { alertStaff } from "@/lib/staff-alert";
 import { sendQuoteConfirmation } from "@/lib/quote-emails";
 import { isValidPhone } from "@/lib/phone";
+import { LOCALE_NAMES, fmt } from "@/lib/i18n/config";
+import { getI18n } from "@/lib/i18n/server";
 
 export type QuoteState = { error?: string; success?: boolean; id?: string; ref?: number; emailSent?: boolean } | undefined;
 
@@ -35,6 +37,10 @@ const optional = (value: string, allowed: Record<string, unknown>) => (value in 
 export async function submitQuote(_: QuoteState, formData: FormData): Promise<QuoteState> {
   // Campo escondido que só robôs preenchem.
   if (text(formData, "website")) return { success: true };
+
+  // Mensagens de erro na língua da página onde o pedido foi feito.
+  const { locale, t } = await getI18n();
+  const e = t.quote.errors;
 
   const current = await getCurrentUser();
   const category = text(formData, "category");
@@ -54,30 +60,30 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
   const availability = formData.getAll("availability").map(String).filter((s) => AVAILABILITY_SLOTS.includes(s));
   const photos = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
 
-  if (!(category in QUOTE_PRODUCTS)) return { error: "Escolha o que procura." };
-  if (name.length < 2) return { error: "Indique o seu nome." };
-  if (!isValidPhone(phone)) return { error: "Indique um número de telefone válido." };
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "O email não parece válido." };
-  if (!(contactPreference in CONTACT_PREFERENCE)) return { error: "Escolha como prefere ser contactado." };
-  if (contactPreference === "email" && !email) return { error: "Indique o email para o podermos contactar." };
+  if (!(category in QUOTE_PRODUCTS)) return { error: e.category };
+  if (name.length < 2) return { error: e.name };
+  if (!isValidPhone(phone)) return { error: e.phone };
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: e.email };
+  if (!(contactPreference in CONTACT_PREFERENCE)) return { error: e.contactPref };
+  if (contactPreference === "email" && !email) return { error: e.emailNeeded };
   if (!FREE_VISIT_MUNICIPALITIES.includes(chosenMunicipality) && chosenMunicipality !== OTHER_MUNICIPALITY) {
-    return { error: "Escolha o concelho da obra." };
+    return { error: e.municipality };
   }
-  if (municipality.length < 2) return { error: "Indique o concelho ou localidade da obra." };
+  if (municipality.length < 2) return { error: e.otherMunicipality };
   // A morada vem da pesquisa de moradas reais (OpenStreetMap), sempre com coordenadas em Portugal.
   if (address.length < 5 || address.length > 300 || !Number.isFinite(lat) || !Number.isFinite(lng) || !isInPortugal(lat, lng)) {
-    return { error: "Escolha a morada da obra na pesquisa de moradas." };
+    return { error: e.placeServer };
   }
-  if (addressDetails.length > 200) return { error: "As indicações da morada são demasiado longas." };
-  if (area && (!Number.isInteger(area) || area < 5 || area > 2000)) return { error: "A área deve estar entre 5 e 2000 m²." };
-  if (message.length > 4000) return { error: "A descrição é demasiado longa." };
-  if (photos.length > MAX_PHOTOS) return { error: `Pode enviar até ${MAX_PHOTOS} fotos.` };
+  if (addressDetails.length > 200) return { error: e.detailsLong };
+  if (area && (!Number.isInteger(area) || area < 5 || area > 2000)) return { error: e.area };
+  if (message.length > 4000) return { error: e.messageLong };
+  if (photos.length > MAX_PHOTOS) return { error: fmt(e.maxPhotos, { max: MAX_PHOTOS }) };
   for (const photo of photos) {
-    if (!(photo.type in PHOTO_TYPES)) return { error: "As fotos têm de ser JPG, PNG ou WebP." };
-    if (photo.size > MAX_PHOTO_BYTES) return { error: "Uma das fotos é demasiado grande." };
+    if (!(photo.type in PHOTO_TYPES)) return { error: e.photoType };
+    if (photo.size > MAX_PHOTO_BYTES) return { error: e.photoSize };
   }
   if (!current && text(formData, "privacy") !== "on") {
-    return { error: "Para enviarmos o pedido, aceite a Política de Privacidade." };
+    return { error: e.privacy };
   }
 
   const admin = createAdminClient();
@@ -89,7 +95,7 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
     .select("id", { count: "exact", head: true })
     .eq("phone", phone)
     .gte("created_at", since);
-  if ((count ?? 0) >= 3) return { error: "Já recebemos os seus pedidos — vamos entrar em contacto em breve." };
+  if ((count ?? 0) >= 3) return { error: e.tooMany };
 
   const id = crypto.randomUUID();
   const paths: string[] = [];
@@ -98,7 +104,7 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
     const { error } = await admin.storage.from(PHOTO_BUCKET).upload(path, photo, { contentType: photo.type });
     if (error) {
       if (paths.length) await admin.storage.from(PHOTO_BUCKET).remove(paths);
-      return { error: "Não foi possível enviar as fotos. Tente novamente ou envie sem fotos." };
+      return { error: e.photoUpload };
     }
     paths.push(path);
   }
@@ -133,7 +139,7 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
   if (error || !saved) {
     if (paths.length) await admin.storage.from(PHOTO_BUCKET).remove(paths);
     console.error("[pedido de orçamento]", error?.message);
-    return { error: "Não foi possível enviar o pedido. Tente novamente." };
+    return { error: e.generic };
   }
 
   const workType = text(formData, "work_type");
@@ -161,6 +167,8 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
           `🔥 Novo pedido de orçamento ${ref}`,
           `${category}${workType in WORK_TYPE ? ` · ${WORK_TYPE[workType]}` : ""}`,
           `${municipality}${outsideArea ? " (fora da zona gratuita)" : ""}${paths.length ? ` · ${paths.length} foto${paths.length > 1 ? "s" : ""}` : ""}`,
+          // Pedido feito no site noutra língua: a equipa sabe em que língua responder.
+          ...(locale !== "pt" ? [`🌍 Pedido feito no site em ${LOCALE_NAMES[locale]}`] : []),
           "",
           `Ver no backoffice: ${process.env.NEXT_PUBLIC_SITE_URL ?? ""}${panel(`/orcamentos/${id}`)}`,
         ].join("\n"),
