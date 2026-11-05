@@ -13,9 +13,9 @@ import { getI18n } from "@/lib/i18n/server";
 // Para mudar o número de fotografias, ajustar também a duração da animação no CSS.
 const SLIDES = [
   { src: "/images/hero/obra-sala-rustica.webp", pos: "78% 50%" },
-  { src: "/images/hero/obra-convento.webp", pos: "72% 50%" },
-  { src: "/images/hero/obra-lareira-suspensa.webp", pos: "80% 50%" },
-  { src: "/images/hero/obra-painel-madeira.webp", pos: "72% 50%" },
+  { src: "/images/hero/obra-convento.webp", pos: "61% 50%" },
+  { src: "/images/hero/obra-lareira-suspensa.webp", pos: "76% 50%" },
+  { src: "/images/hero/obra-painel-madeira.webp", pos: "65% 50%" },
 ];
 
 export default async function Hero() {
