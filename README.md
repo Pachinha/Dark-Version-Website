@@ -542,7 +542,7 @@ a ordem das migrações, URLs, modelos de email, palavras-passe e o primeiro adm
 **Região:** UE (Frankfurt). Os dados ficam na UE (RGPD).
 
 **Migrações** (ficheiros em `supabase/`, aplicados por ordem no SQL Editor; todos aplicados em
-produção até à 015):
+produção até à 017):
 
 | Ficheiro | Conteúdo |
 |---|---|
@@ -558,6 +558,8 @@ produção até à 015):
 | `013` | Link para o cliente partilhar a localização |
 | `014_catalogo.sql` + `014_catalogo_dados.sql` | Catálogo (marcas, categorias, produtos) + dados iniciais |
 | `015` | Catálogo sem PDFs, só imagens |
+| `016_fichas_clientes.sql` | Ficha de cliente automática (com ou sem conta), possíveis repetidos, juntar fichas |
+| `017_manutencao_sem_conta.sql` | Pedir limpeza/manutenção no site sem conta |
 
 **Tabelas:**
 
@@ -567,6 +569,7 @@ produção até à 015):
 - Partilha e comunicação: `client_shares`, `client_comments`, `notifications`.
 - Histórico: `change_log`.
 - Catálogo: `catalog_brands`, `catalog_categories`, `catalog_products`.
+- Fichas de cliente: `customers`, `customer_not_duplicates` (ver [12.6](#126-fichas-de-cliente-e-repetidos)).
 
 **Ficheiros (Storage):**
 
@@ -783,6 +786,41 @@ wrangler.jsonc, open-next.config.ts   configuração Cloudflare
 - Os emails de autenticação (confirmar conta, recuperar palavra-passe) são enviados pelo Supabase.
   Em produção, configurar Supabase → Authentication → SMTP Settings com o **SMTP do Resend**
   (`smtp.resend.com`). Sem isto, o Supabase só envia poucos emails por hora.
+
+### 12.6 Fichas de cliente e repetidos
+
+**Login nunca é obrigatório** para pedir orçamento (`/pedir-orcamento`) ou assistência
+(`/pedir-servico`). A conta é opcional e serve para o cliente acompanhar os pedidos.
+
+**Ficha automática (migração 016):**
+- Cada pedido de orçamento, de limpeza/manutenção e cada obra fica ligado a uma ficha
+  (`customers`), com ou sem conta.
+- A ligação é feita **na base de dados**, por um *trigger* ao gravar, para todos os caminhos de
+  entrada: site, área de cliente, "+ Novo" do painel e obra criada a partir de um orçamento.
+- **Regra de reconhecimento:** primeiro o **telefone** normalizado (`912 345 678` =
+  `+351912345678`), depois o **email**. Se não houver coincidência, cria uma ficha nova.
+- O cliente **nunca sabe que foi reconhecido** e não lhe é mostrado nenhum dado antigo.
+- **Na área de cliente** só aparecem os pedidos feitos com sessão iniciada, ou feitos sem conta
+  com o mesmo email **confirmado**. Nunca aparecem por coincidência de telefone.
+- **Nome e morada não juntam fichas sozinhos**, porque há homónimos e famílias na mesma casa.
+  Esses casos aparecem em **Clientes → Possíveis repetidos**, onde a administração escolhe
+  "juntar" ou "são pessoas diferentes". Juntar mantém a ficha com conta (ou a mais antiga) e
+  move todos os pedidos para ela.
+- Duas contas diferentes nunca se juntam.
+- Apagar a conta apaga a ficha (RGPD).
+- Código:
+  - `supabase/016_fichas_clientes.sql`: regras, *triggers* e as funções `merge_customers` e
+    `customer_duplicates`;
+  - `src/lib/customers.ts`;
+  - `src/app/actions/customers.ts`;
+  - páginas `[painel]/clientes/**`.
+
+**Pedido de assistência sem conta (migração 017):**
+- `/pedir-servico`, nas 5 línguas, com os passos Serviço → Equipamento e quando → Morada e
+  contacto → Confirmar.
+- Pede a aceitação da política de privacidade a quem não tem conta.
+- Envia um aviso Telegram à equipa (🚨 se for urgente) e um email de confirmação ao cliente.
+- Código: `src/app/pedir-servico/`, `src/app/actions/service.ts` e `src/lib/service-emails.ts`.
 
 ---
 
