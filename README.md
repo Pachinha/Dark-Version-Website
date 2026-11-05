@@ -491,7 +491,17 @@ Os **nomes** estão aqui; os **valores** nunca. O modelo comentado é o `.env.ex
 
 **Primeira vez:**
 
-1. Criar a conta Cloudflare (em nome da empresa) em https://dash.cloudflare.com/sign-up.
+1. Criar a conta Cloudflare em https://dash.cloudflare.com/sign-up:
+   - **Email `info@pachinha.com`**: a conta é da empresa desde o início e não há nada a
+     transferir depois. Pode ser o programador a criá-la, mas precisa de acesso a essa caixa para
+     o email de confirmação.
+   - Password forte, guardada num gestor de palavras-passe. A Sandra fica com uma cópia.
+   - Plano **Free**. Não pede cartão.
+   - Se pedir para "adicionar um site/domínio", **saltar esse passo**. O domínio continua na
+     webserver.pt e os nameservers não mudam (ver [secção 6](#6-domínio-e-email-pachinhacom)).
+   - Ligar o **2FA**: My Profile → Authentication.
+   - Convidar o programador: Manage Account → **Members** → *Invite* → papel **Administrator**.
+     O programador passa a trabalhar com a sua própria conta.
 2. `npx wrangler login` (abre o browser para autorizar).
 3. Colocar os segredos: `npx wrangler secret put SUPABASE_SECRET_KEY`, e assim para cada variável
    da secção 8.
