@@ -9,7 +9,7 @@ porque é que cada decisão foi tomada.
 > Os valores vivem em `.env.local` (no computador de quem desenvolve, fora do git), nos segredos da
 > Cloudflare e nos segredos do GitHub.
 
-Última revisão: **2026-11-04**. Valores de preços e limites dos serviços são os desta data —
+Última revisão: **2026-11-05**. Valores de preços e limites dos serviços são os desta data —
 confirme sempre nos links da [secção 15](#15-links-úteis) antes de decidir pagar.
 
 ---
@@ -128,6 +128,83 @@ uma pessoa.
 - A **chave de cifra das cópias de segurança** fica guardada em **dois sítios offline**: com o
   programador e com a Sandra, num gestor de palavras-passe ou impressa num local seguro. Sem ela, as
   cópias não se abrem.
+
+### 3.1 Situação real hoje (2026-11-05)
+
+| Serviço | Em nome de quem está hoje | Para onde deve passar |
+|---|---|---|
+| Supabase | Conta pessoal do programador (José) | Organização com a Sandra como **Owner** (ver 3.3) |
+| GitHub | Organização `Pachinha` | Sandra também como **Owner** da organização |
+| Telegram (bot) | Criado pelo programador | Pode ficar; transferir se a Sandra quiser (ver 3.3) |
+| Cloudflare, Resend | Ainda por criar | Criar já em nome da empresa |
+
+### 3.2 Todas as chaves e segredos: o que são, onde vivem, como se trocam
+
+Cada chave abre uma "porta" diferente. Não são repetidas.
+
+| Nome | O que abre | Onde está guardada | Como se obtém / troca |
+|---|---|---|---|
+| `SUPABASE_DB_PASSWORD` | A base de dados Postgres diretamente (tabelas). **Só a cópia de segurança a usa**; o site não | Segredo do GitHub (Actions) + gestor de palavras-passe | Supabase → Project Settings → Database → *Reset database password*. Depois de trocar, **atualizar o segredo no GitHub**, ou a cópia da noite seguinte falha |
+| `SUPABASE_SECRET_KEY` | A API do Supabase com poderes totais: ficheiros (fotos), apagar contas, ações de admin. O site **e** a cópia usam-na | `.env.local`, segredos da Cloudflare, segredo do GitHub | Supabase → Project Settings → API Keys → criar nova *secret key* → substituir nos 3 sítios → apagar a antiga |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | A API pública (o browser usa-a; protegida pelas regras RLS). Não é secreta | `.env.local`, Cloudflare | Supabase → API Keys |
+| `BACKUP_PASSPHRASE` | **Abrir (decifrar) as cópias de segurança.** Não dá acesso a nada no Supabase | Segredo do GitHub + **gestor de palavras-passe do programador e da Sandra** | Gerada aleatoriamente em 2026-11-05. Se for trocada, as cópias antigas continuam a abrir **só com a chave antiga**: guardar as duas até as antigas expirarem (1 ano) |
+| `SUPABASE_ACCESS_TOKEN` | A conta Supabase do programador (gestão por scripts) | Só no `.env.local` do programador | Supabase → Account → Access Tokens. Pessoal; não vai para produção |
+| `PANEL_SLUG` | Não é uma chave: é o endereço secreto do painel (2.ª camada; o login + 2FA continuam a ser obrigatórios) | `.env.local`, Cloudflare | Escolher outro valor e atualizar na Cloudflare |
+| `TELEGRAM_BOT_TOKEN` | Enviar mensagens como o bot | `.env.local`, Cloudflare | @BotFather → `/revoke` gera um novo |
+| `RESEND_API_KEY` | Enviar emails como `@pachinha.com` | `.env.local` (opcional), Cloudflare | Resend → API Keys |
+| `R2_*` (4 valores) | Escrever no bucket das cópias | Segredos do GitHub | Cloudflare → R2 → *Manage R2 API Tokens* (token só com acesso a esse bucket) |
+
+**Como trocar um segredo no GitHub:** repositório → Settings → Secrets and variables → Actions →
+lápis ao lado do nome → *Update*. O GitHub nunca mostra o valor antigo, só deixa substituí-lo.
+
+**Se suspeitar que uma chave foi exposta**, por exemplo enviada por chat ou email:
+
+1. Trocá-la logo, como indicado na tabela.
+2. Atualizar todos os sítios onde está.
+3. Publicar o site de novo, se for uma variável da Cloudflare.
+
+### 3.3 Passar as contas para a Sandra (ou adicionar pessoas)
+
+**Supabase.** Os projetos pertencem a uma *organização*, não a uma pessoa.
+
+1. Supabase → escolher a organização → **Team** → *Invite* → email da Sandra → papel **Owner**.
+   Também se podem convidar outras pessoas como *Developer* (trabalham no projeto) ou *Read-only*.
+2. Quando a Sandra aceitar, ela passa a ser dona tal como o programador. Se for pedido, o
+   programador desce para *Developer* ou sai.
+   - Em alternativa, cria-se uma organização nova em nome da empresa e move-se o projeto:
+     Project Settings → General → **Transfer project**. É preciso ser Owner nas duas
+     organizações.
+3. **Nada muda no site nem nas cópias.** O endereço do projeto, as chaves e a palavra-passe da BD
+   continuam iguais.
+4. Cuidado com a regra do plano Free: cada Owner/Admin pode ter no máximo 2 projetos gratuitos
+   ativos, somando todas as organizações.
+5. Ajuda: https://supabase.com/docs/guides/platform/access-control e
+   https://supabase.com/docs/guides/platform/project-transfer
+
+**GitHub.**
+
+- github.com/orgs/Pachinha/people → *Invite member* → papel **Owner**.
+- Os segredos e os automatismos ficam no repositório, não na pessoa, por isso mudar de dono não
+  afeta nada.
+
+**Cloudflare.**
+
+- Criar a conta já com o email da empresa.
+- Para adicionar o programador: Manage Account → **Members** → *Invite* (papel *Administrator*).
+
+**Resend.**
+
+- Criar a conta com o email da empresa.
+- Para adicionar pessoas: Settings → **Team** → *Invite*.
+
+**Telegram.**
+
+- O bot pode ser transferido em @BotFather → `/mybots` → bot → *Bot Settings* → *Transfer
+  ownership*. O Telegram exige 2FA ligado.
+- Os avisos não dependem de quem é dono: os destinatários configuram-se com `npm run avisos`.
+
+**Regra:** a Sandra, ou a empresa, deve ser **Owner** em todos os serviços. O programador fica como
+membro. Assim, se um dia o programador deixar de estar disponível, nada fica preso.
 
 ---
 
@@ -530,8 +607,43 @@ produção até à 015):
 - Fica num fornecedor diferente do Supabase: se um falhar, o outro tem os dados.
 - Também se pode correr à mão: GitHub → **Actions** → *Cópia de segurança* → **Run workflow**.
 
-**Segredos necessários:** ver o topo de `.github/workflows/backup.yml`. Se faltar algum, a execução
-falha com a mensagem "Faltam segredos: …".
+**Onde fica cada cópia:**
+
+| Fase | Onde | Durante quanto tempo | Como descarregar |
+|---|---|---|---|
+| **Agora** (sem Cloudflare) | No GitHub, anexada a cada execução | 30 dias, apagada sozinha | Actions → *Cópia de segurança* → clicar numa execução → fundo da página, *Artifacts* |
+| **Depois** (com R2) | Cloudflare R2, bucket privado da empresa | 30 diárias + 12 mensais | Cloudflare → R2 → bucket → pasta `diarias/` ou `mensais/` → Download |
+
+As duas guardam o mesmo: base de dados **e** ficheiros, sempre cifrados. Quem descarregar o
+ficheiro sem a `BACKUP_PASSPHRASE` não consegue ler nada.
+
+**Como foi montado (para refazer ou alterar):**
+
+1. Ficheiros no código:
+   - `.github/workflows/backup.yml`: o automatismo (horário, passos);
+   - `scripts/backup-storage.mjs`: descarrega as fotos.
+2. O workflow tem de estar no ramo **`master`**. O GitHub só agenda execuções no ramo principal.
+3. Segredos em repositório → Settings → Secrets and variables → **Actions**:
+   - `SUPABASE_DB_PASSWORD`;
+   - `SUPABASE_SECRET_KEY`;
+   - `BACKUP_PASSPHRASE`;
+   - mais tarde, os 4 `R2_*`.
+
+   O que é cada um está na [secção 3.2](#32-todas-as-chaves-e-segredos-o-que-são-onde-vivem-como-se-trocam).
+   Se faltar algum, a execução falha com a mensagem "Faltam segredos: …".
+4. **Ligar a R2 (quando houver conta Cloudflare):**
+   - Criar um bucket privado (ex.: `pachinha-copias`).
+   - Criar um *R2 API Token* com permissão *Object Read & Write* só nesse bucket.
+   - Criar os segredos:
+     - `R2_ACCOUNT_ID`: o ID da conta, que aparece no painel da R2;
+     - `R2_ACCESS_KEY_ID` e `R2_SECRET_ACCESS_KEY`: os dados do token;
+     - `R2_BUCKET`: o nome do bucket.
+   - Acrescentar as regras de retenção descritas abaixo.
+   - Não é preciso mudar código.
+5. **Mudar o horário:** a linha `cron` no topo do workflow, em hora UTC.
+   Exemplo: `"0 2 * * *"` corre às 02:00 UTC todos os dias.
+6. **Mudar de projeto Supabase:** atualizar `SUPABASE_REF` e `SUPABASE_POOLER_HOST` no workflow.
+   Os valores estão em Supabase → **Connect** → *Session pooler*.
 
 **Retenção** (para não crescer sem controlo): regras de ciclo de vida no bucket R2, configuradas
 uma vez na Cloudflare (R2 → bucket → Settings → Object lifecycle rules):
