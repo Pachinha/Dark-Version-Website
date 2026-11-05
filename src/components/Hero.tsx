@@ -7,8 +7,17 @@ import { getI18n } from "@/lib/i18n/server";
 
 // Só números que conseguimos sustentar. O nº de instalações entra quando a Sandra o confirmar.
 
-// Imagem principal: a Sandra quer uma lareira instalada pela Pachinha (ex.: a do convento).
-// Basta substituir /public/images/hero.png pela fotografia real.
+// Fundo: obras reais da Pachinha, a passar devagar (só CSS — ver .hero-slide no globals.css).
+// As fotografias foram tratadas para a paleta do site: a obra fica à direita e a esquerda é
+// uma extensão desfocada por baixo do degradê. pos: o que fica à vista no telemóvel.
+// Para mudar o número de fotografias, ajustar também a duração da animação no CSS.
+const SLIDES = [
+  { src: "/images/hero/obra-sala-rustica.webp", pos: "78% 50%" },
+  { src: "/images/hero/obra-convento.webp", pos: "72% 50%" },
+  { src: "/images/hero/obra-lareira-suspensa.webp", pos: "80% 50%" },
+  { src: "/images/hero/obra-painel-madeira.webp", pos: "72% 50%" },
+];
+
 export default async function Hero() {
   const { locale, t, href } = await getI18n();
   // Número de marcas arredondado às 5 abaixo ("20+").
@@ -20,12 +29,18 @@ export default async function Hero() {
   ];
   return (
     <section className="hero">
-      <img
-        src="/images/hero.png"
-        alt={t.hero.imageAlt}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }}
-        loading="eager"
-      />
+      {SLIDES.map((s, i) => (
+        <img
+          key={s.src}
+          src={s.src}
+          alt={i === 0 ? t.hero.imageAlt : ""}
+          aria-hidden={i > 0 || undefined}
+          className="hero-slide"
+          style={{ objectPosition: s.pos, animationDelay: `${i * 7 - 1.2}s` }}
+          fetchPriority={i === 0 ? "high" : "low"}
+          decoding="async"
+        />
+      ))}
 
       <div
         style={{
