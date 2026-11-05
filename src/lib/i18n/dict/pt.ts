@@ -243,11 +243,11 @@ export const pt = {
       { title: "Indique as suas preferências", desc: "Os dias da semana e os períodos (manhã ou tarde) que lhe dão mais jeito." },
       { title: "Nós marcamos e confirmamos", desc: "O secretariado encaixa a visita na agenda dos técnicos e contacta-o com o dia e a hora." },
     ],
-    needsAccount: "Precisa de uma conta de cliente — demora menos de um minuto a criar.",
+    needsAccount: "Não precisa de conta — leva cerca de 1 minuto.",
     faqTitle: "Perguntas frequentes",
     faqs: [
       { q: "Posso escolher o dia e a hora da visita?", a: "Indica-nos os dias e os períodos que lhe dão mais jeito. O nosso secretariado marca a visita dentro dessas preferências, de acordo com a agenda dos técnicos, e confirma consigo." },
-      { q: "Preciso de criar conta para fazer um pedido?", a: "Sim. A conta guarda a sua morada e o histórico dos seus equipamentos, e permite acompanhar o estado de cada pedido. Demora menos de um minuto." },
+      { q: "Preciso de criar conta para fazer um pedido?", a: "Não. Pode fazer o pedido sem conta. Se quiser, pode criar uma para guardar as suas moradas e acompanhar os seus pedidos." },
       { q: "Quanto tempo demoram a responder?", a: "Respondemos nas 24 horas úteis seguintes ao pedido. Se o equipamento estiver parado, marque o pedido como urgente." },
       { q: "O orçamento tem custos?", a: "Não. O pedido de orçamento é gratuito e sem compromisso." },
     ],
@@ -326,6 +326,34 @@ export const pt = {
     anyDayIn: "Qualquer dia, de {period}",
     allDay: "{day} (todo o dia)",
     dayIn: "{day} de {period}",
+    service: {
+      "manutencao": {
+        "label": "Manutenção anual",
+        "desc": "Revisão completa, vedações, tiragem e afinação."
+      },
+      "limpeza": {
+        "label": "Limpeza de chaminé",
+        "desc": "Limpeza da chaminé e condutas, com certificado."
+      },
+      "assistencia": {
+        "label": "Assistência técnica",
+        "desc": "Diagnóstico e reparação de avarias."
+      }
+    } as Record<string, { label: string; desc: string }>,
+    urgency: {
+      "flexivel": {
+        "label": "Sem pressa",
+        "hint": "Nas próximas semanas"
+      },
+      "normal": {
+        "label": "Brevemente",
+        "hint": "Nos próximos dias"
+      },
+      "urgente": {
+        "label": "Urgente",
+        "hint": "Equipamento parado ou avaria"
+      }
+    } as Record<string, { label: string; hint: string }>,
   },
 
   availability: {
@@ -498,6 +526,63 @@ export const pt = {
       createAccount: "Criar conta →",
       backToSite: "← Voltar ao site",
     },
+  },
+
+  service: {
+    "meta": "Pedir assistência",
+    "metaDescription": "Peça manutenção, limpeza de chaminé ou assistência técnica em 1 minuto, sem precisar de conta.",
+    "eyebrow": "Apoio ao cliente",
+    "title": "Pedir manutenção ou assistência",
+    "lead": "Diga-nos de que precisa e quando lhe dá mais jeito. O nosso secretariado marca a visita dentro das suas preferências e contacta-o para confirmar.",
+    "noAccount": "Não precisa de conta para fazer o pedido.",
+    "steps": [
+      "Serviço",
+      "Equipamento",
+      "Morada e contacto",
+      "Confirmar"
+    ],
+    "whatLegend": "De que precisa?",
+    "equipmentLegend": "Sobre o equipamento",
+    "equipment": "Equipamento",
+    "equipmentHint": "Ex.: recuperador a lenha, salamandra a pellets — marca e modelo se souber",
+    "urgency": "Quando precisa do serviço?",
+    "whenInfo": "Não precisa de escolher uma hora exata: indique as suas preferências e o nosso secretariado marca a visita de acordo com a agenda dos técnicos.",
+    "from": "Disponível a partir de",
+    "fromHint": "Opcional — ex.: se estiver fora até lá",
+    "contactLegend": "Morada e contacto",
+    "address": "Morada do serviço",
+    "addressPlaceholder": "Rua e localidade",
+    "emailHint": "Opcional — para receber a confirmação por email",
+    "sumService": "Serviço",
+    "sumEquipment": "Equipamento",
+    "sumWhen": "Quando",
+    "sumFrom": "A partir de",
+    "notes": "Observações",
+    "notesHint": "Opcional — o problema, acesso ao local, horários a evitar…",
+    "notFinalBefore": "Isto é um",
+    "notFinalStrong": "pedido, não uma marcação",
+    "notFinalAfter": ". A visita só fica confirmada quando o secretariado o contactar com o dia e a hora.",
+    "errors": {
+      "service": "Escolha o tipo de serviço.",
+      "equipment": "Indique o equipamento (ex.: recuperador a lenha).",
+      "date": "A data não pode estar no passado.",
+      "tooMany": "Já recebemos os seus pedidos — vamos entrar em contacto em breve.",
+      "generic": "Não foi possível enviar o pedido. Tente novamente."
+    },
+    "done": {
+      "title": "Pedido enviado — obrigado, {name}!",
+      "emailSentBefore": "Enviámos a confirmação para",
+      "emailSentAfter": ".",
+      "received": "Pedido recebido",
+      "receivedText": "A nossa equipa já foi avisada.",
+      "schedule": "O secretariado marca a visita",
+      "scheduleText": "Escolhemos uma data dentro das suas preferências.",
+      "confirm": "Confirmação",
+      "confirmText": "Contactamo-lo por {by} com o dia e a hora.",
+      "myRequests": "Ver os meus pedidos",
+      "another": "Fazer outro pedido",
+      "backToSite": "← Voltar ao site"
+    }
   },
 
   receipt: {

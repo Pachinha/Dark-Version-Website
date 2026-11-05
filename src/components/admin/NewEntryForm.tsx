@@ -1,14 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { clientAddresses, createEntry, type ClientAddress } from "@/app/actions/entries";
+import { clientAddresses, createEntry, customerPastPlaces, type ClientAddress, type PastPlace } from "@/app/actions/entries";
 import ConfirmedForm from "@/components/admin/ConfirmedForm";
 import PlaceSearch, { type Place } from "@/components/account/PlaceSearch";
 import { MAINTENANCE_SERVICE } from "@/lib/labels";
 import PhoneInput from "@/components/PhoneInput";
 
 type Kind = "orcamento" | "visita" | "manutencao" | "obra";
-type Client = { id: string; full_name: string; email: string; phone: string };
+// Ficha de cliente (com ou sem conta no site). id = ficha; user_id = conta, se tiver.
+type Client = { id: string; user_id: string | null; full_name: string; email: string; phone: string };
 type Staff = { id: string; full_name: string };
 
 const KINDS: { value: Kind; title: string; hint: string }[] = [
@@ -26,24 +27,31 @@ const LABELS: Record<Kind, Record<string, string>> = {
   obra: { name: "Cliente", title: "Obra", scheduled_start: "Início", scheduled_end: "Fim previsto", technician_id: "Técnico" },
 };
 
+const toPlace = (p: PastPlace): Place => ({ address: p.address, postcode: "", locality: "", lat: p.lat, lng: p.lng, source: "search" });
+
 export default function NewEntryForm({
   initialKind,
+  initialClient,
   clients,
   staff,
   categories,
 }: {
   initialKind: Kind;
+  // Cliente já escolhido ("+ Novo registo" na ficha), com as moradas carregadas pelo servidor.
+  initialClient?: { client: Client; saved: ClientAddress[]; past: PastPlace[] } | null;
   clients: Client[];
   staff: Staff[];
   categories: string[];
 }) {
   const [kind, setKind] = useState<Kind>(initialKind);
-  const [mode, setMode] = useState<"novo" | "conta">("novo");
+  const [mode, setMode] = useState<"novo" | "conta">(initialClient ? "conta" : "novo");
   const [search, setSearch] = useState("");
-  const [account, setAccount] = useState<Client | null>(null);
-  const [saved, setSaved] = useState<ClientAddress[]>([]);
-  const [addressId, setAddressId] = useState("");
-  const [place, setPlace] = useState<Place | null>(null);
+  const [account, setAccount] = useState<Client | null>(initialClient?.client ?? null);
+  const [past, setPast] = useState<PastPlace[]>(initialClient?.past ?? []);
+  const [details, setDetails] = useState(initialClient?.past[0]?.details ?? "");
+  const [saved, setSaved] = useState<ClientAddress[]>(initialClient?.saved ?? []);
+  const [addressId, setAddressId] = useState(initialClient?.saved[0]?.id ?? "");
+  const [place, setPlace] = useState<Place | null>(initialClient?.past[0] ? toPlace(initialClient.past[0]) : null);
   const [askClient, setAskClient] = useState(false);
 
   const matches = useMemo(() => {
@@ -56,9 +64,32 @@ export default function NewEntryForm({
     setAccount(c);
     setSearch("");
     setPlace(null);
-    const list = await clientAddresses(c.id);
-    setSaved(list);
-    setAddressId(list[0]?.id ?? "");
+    setDetails("");
+    setPast([]);
+    if (c.user_id) {
+      const list = await clientAddresses(c.user_id);
+      setSaved(list);
+      setAddressId(list[0]?.id ?? "");
+    } else {
+      // Cliente sem conta: sugere as moradas dos pedidos anteriores.
+      setSaved([]);
+      setAddressId("");
+      const list = await customerPastPlaces(c.id);
+      setPast(list);
+      if (list[0]) applyPast(list[0]);
+    }
+  }
+  function applyPast(p: PastPlace) {
+    setPlace(toPlace(p));
+    setDetails(p.details);
+  }
+  function clearAccount() {
+    setAccount(null);
+    setSaved([]);
+    setAddressId("");
+    setPast([]);
+    setPlace(null);
+    setDetails("");
   }
 
   const needsAddress = kind !== "orcamento";
@@ -97,11 +128,11 @@ export default function NewEntryForm({
         {/* ── Cliente ── */}
         <h3 style={{ fontSize: 15, margin: 0 }}>Cliente</h3>
         <div className="row">
-          <button type="button" className={`btn btn-sm ${mode === "novo" ? "btn-ink" : "btn-ghost"}`} onClick={() => { setMode("novo"); setAccount(null); setSaved([]); setAddressId(""); }}>
-            Cliente sem conta
+          <button type="button" className={`btn btn-sm ${mode === "novo" ? "btn-ink" : "btn-ghost"}`} onClick={() => { setMode("novo"); clearAccount(); }}>
+            Cliente novo
           </button>
           <button type="button" className={`btn btn-sm ${mode === "conta" ? "btn-ink" : "btn-ghost"}`} onClick={() => setMode("conta")}>
-            Cliente com conta no site
+            Cliente já registado
           </button>
         </div>
 
@@ -124,10 +155,18 @@ export default function NewEntryForm({
           <div className="item">
             <div className="item-head">
               <strong>{account.full_name || "(sem nome)"}</strong>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setAccount(null); setSaved([]); setAddressId(""); }}>Trocar</button>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={clearAccount}>Trocar</button>
             </div>
-            <div className="muted">{[account.email, account.phone].filter(Boolean).join(" · ")}</div>
-            <input type="hidden" name="user_id" value={account.id} />
+            <div className="muted">{[account.email, account.phone].filter(Boolean).join(" · ")} · {account.user_id ? "com conta" : "sem conta"}</div>
+            <input type="hidden" name="customer_id" value={account.id} />
+            {account.user_id ? (
+              <input type="hidden" name="user_id" value={account.user_id} />
+            ) : (
+              <>
+                <input type="hidden" name="phone" value={account.phone} />
+                <input type="hidden" name="email" value={account.email} />
+              </>
+            )}
             <input type="hidden" name="name" value={account.full_name} />
           </div>
         ) : (
@@ -141,13 +180,13 @@ export default function NewEntryForm({
                 {matches.map((c) => (
                   <li key={c.id}>
                     <button type="button" className="item" style={{ width: "100%", textAlign: "left", font: "inherit", cursor: "pointer" }} onClick={() => chooseAccount(c)}>
-                      <strong>{c.full_name || "(sem nome)"}</strong> <span className="muted">· {c.email}</span>
+                      <strong>{c.full_name || "(sem nome)"}</strong> <span className="muted">· {[c.phone, c.email].filter(Boolean).join(" · ")}{c.user_id ? " · com conta" : ""}</span>
                     </button>
                   </li>
                 ))}
               </ul>
             )}
-            {search.trim().length >= 2 && !matches.length && <p className="hint" style={{ margin: 0 }}>Nenhum cliente com conta encontrado. Use “Cliente sem conta”.</p>}
+            {search.trim().length >= 2 && !matches.length && <p className="hint" style={{ margin: 0 }}>Nenhum cliente encontrado. Use “Cliente novo”.</p>}
           </>
         )}
 
@@ -178,6 +217,15 @@ export default function NewEntryForm({
             </select>
           </label>
         )}
+        {past.length > 1 && (
+          <label className="field">
+            Morada usada antes
+            <select onChange={(e) => { const p = past[Number(e.target.value)]; if (p) applyPast(p); else { setPlace(null); setDetails(""); } }} defaultValue="0">
+              {past.map((p, i) => <option key={i} value={i}>{p.address}{p.details ? ` (${p.details})` : ""}</option>)}
+              <option value="-1">Outra morada…</option>
+            </select>
+          </label>
+        )}
         {!addressId && (
           place ? (
             <div className="item">
@@ -191,7 +239,7 @@ export default function NewEntryForm({
               <input type="hidden" name="lng" value={place.lng} />
               <label className="field" style={{ marginTop: 10 }}>
                 Nº de porta, andar, indicações
-                <input name="address_details" maxLength={200} />
+                <input name="address_details" maxLength={200} value={details} onChange={(e) => setDetails(e.target.value)} />
               </label>
             </div>
           ) : (

@@ -241,11 +241,11 @@ export const es: Dict = {
       { title: "Indique sus preferencias", desc: "Los días de la semana y las franjas (mañana o tarde) que mejor le vienen." },
       { title: "Nosotros programamos y confirmamos", desc: "La oficina encaja la visita en la agenda de los técnicos y le contacta con el día y la hora." },
     ],
-    needsAccount: "Necesita una cuenta de cliente — se crea en menos de un minuto.",
+    needsAccount: "No necesita cuenta — tarda alrededor de un minuto.",
     faqTitle: "Preguntas frecuentes",
     faqs: [
       { q: "¿Puedo elegir el día y la hora de la visita?", a: "Indíquenos los días y franjas que mejor le vienen. Nuestra oficina programa la visita dentro de esas preferencias, según la agenda de los técnicos, y la confirma con usted." },
-      { q: "¿Necesito crear una cuenta para hacer una solicitud?", a: "Sí. La cuenta guarda su dirección y el historial de sus equipos, y le permite seguir el estado de cada solicitud. Tarda menos de un minuto." },
+      { q: "¿Necesito crear una cuenta para hacer una solicitud?", a: "No. Puede hacer la solicitud sin cuenta. Si lo desea, puede crear una para guardar sus direcciones y seguir sus solicitudes." },
       { q: "¿Cuánto tardan en responder?", a: "Respondemos en las 24 horas laborables siguientes a la solicitud. Si el equipo está parado, marque la solicitud como urgente." },
       { q: "¿El presupuesto tiene coste?", a: "No. La solicitud de presupuesto es gratuita y sin compromiso." },
     ],
@@ -321,6 +321,34 @@ export const es: Dict = {
     anyDayIn: "Cualquier día, por la {period}",
     allDay: "{day} (todo el día)",
     dayIn: "{day} por la {period}",
+    service: {
+      "manutencao": {
+        "label": "Mantenimiento anual",
+        "desc": "Revisión completa, juntas, tiro y ajuste."
+      },
+      "limpeza": {
+        "label": "Limpieza de chimenea",
+        "desc": "Limpieza de la chimenea y los conductos, con certificado."
+      },
+      "assistencia": {
+        "label": "Asistencia técnica",
+        "desc": "Diagnóstico y reparación de averías."
+      }
+    },
+    urgency: {
+      "flexivel": {
+        "label": "Sin prisa",
+        "hint": "En las próximas semanas"
+      },
+      "normal": {
+        "label": "Pronto",
+        "hint": "En los próximos días"
+      },
+      "urgente": {
+        "label": "Urgente",
+        "hint": "Equipo parado o averiado"
+      }
+    },
   },
 
   availability: {
@@ -493,6 +521,63 @@ export const es: Dict = {
       createAccount: "Crear cuenta →",
       backToSite: "← Volver al sitio",
     },
+  },
+
+  service: {
+    "meta": "Pedir asistencia",
+    "metaDescription": "Solicite mantenimiento, limpieza de chimenea o asistencia técnica en un minuto, sin necesidad de cuenta.",
+    "eyebrow": "Atención al cliente",
+    "title": "Pedir mantenimiento o asistencia",
+    "lead": "Díganos qué necesita y cuándo le viene mejor. Nuestra oficina programa la visita según sus preferencias y le contacta para confirmarla.",
+    "noAccount": "No necesita cuenta para hacer la solicitud.",
+    "steps": [
+      "Servicio",
+      "Equipo",
+      "Dirección y contacto",
+      "Confirmar"
+    ],
+    "whatLegend": "¿Qué necesita?",
+    "equipmentLegend": "Sobre el equipo",
+    "equipment": "Equipo",
+    "equipmentHint": "Ej.: recuperador de leña, estufa de pellets — marca y modelo si lo sabe",
+    "urgency": "¿Cuándo necesita el servicio?",
+    "whenInfo": "No tiene que elegir una hora exacta: indíquenos sus preferencias y nuestra oficina programa la visita según la agenda de los técnicos.",
+    "from": "Disponible a partir del",
+    "fromHint": "Opcional — p. ej., si está fuera hasta entonces",
+    "contactLegend": "Dirección y contacto",
+    "address": "Dirección del servicio",
+    "addressPlaceholder": "Calle y localidad",
+    "emailHint": "Opcional — para recibir la confirmación por email",
+    "sumService": "Servicio",
+    "sumEquipment": "Equipo",
+    "sumWhen": "Cuándo",
+    "sumFrom": "A partir del",
+    "notes": "Observaciones",
+    "notesHint": "Opcional — el problema, acceso al lugar, horarios a evitar…",
+    "notFinalBefore": "Esto es una",
+    "notFinalStrong": "solicitud, no una cita",
+    "notFinalAfter": ". La visita solo queda confirmada cuando nuestra oficina le contacte con el día y la hora.",
+    "errors": {
+      "service": "Elija el tipo de servicio.",
+      "equipment": "Indique el equipo (ej.: recuperador de leña).",
+      "date": "La fecha no puede estar en el pasado.",
+      "tooMany": "Ya hemos recibido sus solicitudes — nos pondremos en contacto pronto.",
+      "generic": "No se pudo enviar la solicitud. Inténtelo de nuevo."
+    },
+    "done": {
+      "title": "Solicitud enviada — ¡gracias, {name}!",
+      "emailSentBefore": "Hemos enviado la confirmación a",
+      "emailSentAfter": ".",
+      "received": "Solicitud recibida",
+      "receivedText": "Nuestro equipo ya ha sido avisado.",
+      "schedule": "Nuestra oficina programa la visita",
+      "scheduleText": "Elegimos una fecha dentro de sus preferencias.",
+      "confirm": "Confirmación",
+      "confirmText": "Le contactamos por {by} con el día y la hora.",
+      "myRequests": "Ver mis solicitudes",
+      "another": "Hacer otra solicitud",
+      "backToSite": "← Volver al sitio"
+    }
   },
 
   receipt: {

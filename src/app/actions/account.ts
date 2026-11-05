@@ -6,56 +6,10 @@ import { requireUser } from "@/lib/auth";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { isInPortugal } from "@/lib/geo";
 import { PHOTO_BUCKET } from "@/lib/quote-photos";
-import { MAINTENANCE_SERVICE, AVAILABILITY_SLOTS, URGENCY, CONTACT_PREFERENCE } from "@/lib/labels";
 import type { FormState } from "./auth";
 import { isValidPhone } from "@/lib/phone";
 
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
-
-export async function createMaintenance(_: FormState, formData: FormData): Promise<FormState> {
-  const { user } = await requireUser();
-  const service = text(formData, "service");
-  const equipment = text(formData, "equipment");
-  const addressId = text(formData, "address_id");
-  const preferredDate = text(formData, "preferred_date");
-  const notes = text(formData, "notes");
-  const availability = formData.getAll("availability").map(String).filter((s) => AVAILABILITY_SLOTS.includes(s));
-  const urgency = text(formData, "urgency") || "normal";
-  const contactPreference = text(formData, "contact_preference") || "telefone";
-
-  if (!(service in MAINTENANCE_SERVICE)) return { error: "Escolha o tipo de serviço." };
-  if (!(urgency in URGENCY)) return { error: "Indique quando precisa do serviço." };
-  if (!(contactPreference in CONTACT_PREFERENCE)) return { error: "Escolha como prefere ser contactado." };
-  if (equipment.length < 2) return { error: "Indique o equipamento (ex.: recuperador a lenha Solzaima)." };
-  if (!addressId) return { error: "Escolha a morada onde será feito o serviço." };
-  if (preferredDate && preferredDate < new Date().toISOString().slice(0, 10)) {
-    return { error: "A data preferida não pode estar no passado." };
-  }
-
-  const phone = text(formData, "phone");
-  if (formData.has("phone") && !isValidPhone(phone)) {
-    return { error: "Indique um número de telefone válido." };
-  }
-
-  const supabase = await createClient();
-  if (phone) await supabase.from("profiles").update({ phone }).eq("id", user.id);
-  // RLS also ensures the address belongs to this user.
-  const { error } = await supabase.from("maintenance_requests").insert({
-    user_id: user.id,
-    address_id: addressId,
-    service,
-    equipment,
-    preferred_date: preferredDate || null,
-    availability,
-    urgency,
-    contact_preference: contactPreference,
-    notes,
-  });
-  if (error) return { error: "Não foi possível enviar o pedido. Tente novamente." };
-
-  revalidatePath("/conta", "layout");
-  return { success: "Pedido enviado! O nosso secretariado vai marcar a visita tendo em conta as suas preferências e contacta-o para confirmar." };
-}
 
 export async function addAddress(_: FormState, formData: FormData): Promise<FormState> {
   const { user } = await requireUser();

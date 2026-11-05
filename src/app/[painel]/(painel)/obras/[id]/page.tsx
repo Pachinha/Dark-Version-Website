@@ -29,9 +29,11 @@ export default async function AdminJobDetail({ params }: { params: Promise<{ id:
   // Obra de um pedido feito sem conta: contactos e morada vêm do pedido.
   const quote = job.quote as { id: string; name: string; email: string; phone: string; address: string; address_details: string; municipality: string; lat: number | null; lng: number | null } | null;
   // Sem conta: primeiro os contactos registados na própria obra, depois os do pedido de orçamento.
-  const client = job.client
+  const found = job.client
     ?? (job.name ? { id: "", full_name: job.name, email: job.email, phone: job.phone } : null)
     ?? (quote ? { id: "", full_name: quote.name, email: quote.email, phone: quote.phone } : null);
+  // A ligação abre a ficha do cliente (com ou sem conta).
+  const client = found && { ...found, id: job.customer_id ?? found.id };
   const address = job.addresses
     ?? (job.address ? { label: "Obra", address: job.address, details: job.address_details, lat: job.lat, lng: job.lng } : null)
     ?? (quote && (quote.address || quote.municipality)
@@ -66,7 +68,7 @@ export default async function AdminJobDetail({ params }: { params: Promise<{ id:
           </ConfirmedForm>
         </section>
         <div>
-          <ClientCard client={client} address={address} linkToClient={isAdmin && Boolean(job.client)}>
+          <ClientCard client={client} address={address} linkToClient={isAdmin && Boolean(job.customer_id || job.client)}>
           {isAdmin && <LocationRequest entity="jobs" id={job.id} hasLocation={Boolean(address)} />}
         </ClientCard>
           {sheet && (
