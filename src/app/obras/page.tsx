@@ -47,7 +47,7 @@ export default async function ObrasPage({ searchParams }: { searchParams: Promis
             </p>
           </div>
         </section>
-        <Navbar />
+        <Navbar current="obras" />
       </div>
 
       <main style={{ background: "#1a1108" }}>

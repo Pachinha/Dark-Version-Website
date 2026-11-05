@@ -52,7 +52,7 @@ export default async function ProdutoPage({ params }: Params) {
   return (
     <>
       <div style={{ position: "relative", background: "#1a1108" }}>
-        <Navbar />
+        <Navbar current={product.outlet ? "outlet" : "produtos"} />
         <main className="sec" style={{ padding: "140px 52px 72px", color: "#f2ece2" }}>
           <nav aria-label="breadcrumb" className="product-crumbs">
             <Link href={href("/produtos")}>{t.nav.products}</Link>

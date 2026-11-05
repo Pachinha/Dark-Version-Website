@@ -62,7 +62,7 @@ export default async function ApoioClientePage() {
             </div>
           </div>
         </section>
-        <Navbar />
+        <Navbar current="apoio" />
       </div>
 
       <main style={{ background: "#1a1108" }}>
