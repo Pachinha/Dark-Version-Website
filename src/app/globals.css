@@ -670,6 +670,13 @@ body {
 .dash-bar { height: 10px; border-radius: 999px; background: rgba(38,32,25,0.08); overflow: hidden; }
 .dash-bar span { display: block; height: 100%; border-radius: 999px; background: #bf5b2d; }
 .dash-bar-n { font-weight: 700; white-space: nowrap; }
+.dash-bar-warn span { background: #d9902f; }
+.dash-bar-danger span { background: #b3261e; }
+.dash-space { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.dash-space li { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+.dash-space-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.dash-space-head small { font-weight: 500; color: rgba(38,32,25,0.5); }
+.dash-space .muted { font-size: 12px; }
 .dash-bar-n small { font-weight: 500; color: rgba(38,32,25,0.5); }
 @media (max-width: 1180px) {
   .dash-grid { grid-template-columns: 1fr; }

@@ -12,6 +12,7 @@ import { isValidPhone } from "@/lib/phone";
 import { municipalityFromPostcode } from "@/lib/service-area";
 import { sendServiceConfirmation } from "@/lib/service-emails";
 import { alertStaff } from "@/lib/staff-alert";
+import { checkSpace } from "@/lib/space";
 import { LOCALE_NAMES } from "@/lib/i18n/config";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -127,6 +128,7 @@ export async function submitService(_: ServiceState, formData: FormData): Promis
 
   after(async () => {
     await Promise.all([
+      checkSpace(),
       sendServiceConfirmation({
         name,
         email,
