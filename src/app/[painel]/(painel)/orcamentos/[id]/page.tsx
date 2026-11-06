@@ -161,7 +161,7 @@ export default async function AdminQuoteDetail({ params }: { params: Promise<{ i
           <h2>Cliente</h2>
           <p style={{ marginTop: 0, lineHeight: 1.7 }}>
             <strong>
-              {account ? <Link className="link" href={panel(`/clientes/${account.id}`)}>{name}</Link> : name}
+              {q.customer_id ? <Link className="link" href={panel(`/clientes/${q.customer_id}`)}>{name}</Link> : name}
             </strong>
             {!account && <span className="pref" style={{ marginLeft: 8 }}>Sem conta</span>}
             {phone && <><br /><a className="link" href={`tel:${phone}`}>{phone}</a></>}
@@ -199,7 +199,7 @@ export default async function AdminQuoteDetail({ params }: { params: Promise<{ i
             <h2>Partilhar com a equipa</h2>
             <p className="muted" style={{ margin: 0 }}>
               Este pedido é de um cliente com conta. Partilhe a ficha do cliente — inclui este pedido:{" "}
-              <Link className="link" href={panel(`/clientes/${account.id}`)}>abrir ficha de {name}</Link>.
+              <Link className="link" href={panel(`/clientes/${q.customer_id ?? account.id}`)}>abrir ficha de {name}</Link>.
             </p>
           </section>
         ) : (

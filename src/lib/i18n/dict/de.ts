@@ -241,11 +241,11 @@ export const de: Dict = {
       { title: "Wünsche angeben", desc: "Die Wochentage und Zeiten (vormittags oder nachmittags), die Ihnen passen." },
       { title: "Wir planen und bestätigen", desc: "Das Büro plant den Besuch im Kalender der Techniker ein und nennt Ihnen Tag und Uhrzeit." },
     ],
-    needsAccount: "Sie benötigen ein Kundenkonto — es ist in weniger als einer Minute erstellt.",
+    needsAccount: "Kein Konto nötig — es dauert etwa eine Minute.",
     faqTitle: "Häufige Fragen",
     faqs: [
       { q: "Kann ich Tag und Uhrzeit des Besuchs wählen?", a: "Nennen Sie uns die Tage und Zeiten, die Ihnen passen. Unser Büro plant den Besuch innerhalb dieser Wünsche nach dem Kalender der Techniker und bestätigt ihn mit Ihnen." },
-      { q: "Brauche ich ein Konto für eine Anfrage?", a: "Ja. Das Konto speichert Ihre Adresse und die Historie Ihrer Geräte und zeigt den Status jeder Anfrage. Es dauert weniger als eine Minute." },
+      { q: "Brauche ich ein Konto für eine Anfrage?", a: "Nein. Sie können die Anfrage ohne Konto stellen. Wenn Sie möchten, können Sie eines anlegen, um Ihre Adressen zu speichern und Ihre Anfragen zu verfolgen." },
       { q: "Wie schnell antworten Sie?", a: "Wir antworten innerhalb von 24 Arbeitsstunden nach der Anfrage. Wenn Ihr Gerät ausgefallen ist, markieren Sie die Anfrage als dringend." },
       { q: "Kostet das Angebot etwas?", a: "Nein. Die Angebotsanfrage ist kostenlos und unverbindlich." },
     ],
@@ -321,6 +321,34 @@ export const de: Dict = {
     anyDayIn: "Jeden Tag, {period}",
     allDay: "{day} (ganztägig)",
     dayIn: "{day}, {period}",
+    service: {
+      "manutencao": {
+        "label": "Jährliche Wartung",
+        "desc": "Komplette Inspektion, Dichtungen, Zug und Einstellung."
+      },
+      "limpeza": {
+        "label": "Schornsteinreinigung",
+        "desc": "Reinigung von Schornstein und Rauchrohren, mit Bescheinigung."
+      },
+      "assistencia": {
+        "label": "Technischer Service",
+        "desc": "Diagnose und Reparatur von Störungen."
+      }
+    },
+    urgency: {
+      "flexivel": {
+        "label": "Keine Eile",
+        "hint": "In den nächsten Wochen"
+      },
+      "normal": {
+        "label": "Bald",
+        "hint": "In den nächsten Tagen"
+      },
+      "urgente": {
+        "label": "Dringend",
+        "hint": "Gerät steht still oder ist defekt"
+      }
+    },
   },
 
   availability: {
@@ -493,6 +521,63 @@ export const de: Dict = {
       createAccount: "Konto erstellen →",
       backToSite: "← Zurück zur Website",
     },
+  },
+
+  service: {
+    "meta": "Service anfragen",
+    "metaDescription": "Wartung, Schornsteinreinigung oder technischen Service in einer Minute anfragen — ohne Konto.",
+    "eyebrow": "Kundenservice",
+    "title": "Wartung oder Service anfragen",
+    "lead": "Sagen Sie uns, was Sie brauchen und wann es Ihnen passt. Unser Büro plant den Besuch nach Ihren Wünschen und meldet sich zur Bestätigung.",
+    "noAccount": "Für die Anfrage brauchen Sie kein Konto.",
+    "steps": [
+      "Leistung",
+      "Gerät",
+      "Adresse und Kontakt",
+      "Bestätigen"
+    ],
+    "whatLegend": "Was brauchen Sie?",
+    "equipmentLegend": "Zum Gerät",
+    "equipment": "Gerät",
+    "equipmentHint": "Z. B. Holz-Heizeinsatz, Pelletofen — Marke und Modell, falls bekannt",
+    "urgency": "Wann brauchen Sie den Service?",
+    "whenInfo": "Sie müssen keine genaue Uhrzeit wählen: Nennen Sie uns Ihre Wünsche, und unser Büro plant den Besuch nach dem Kalender der Techniker.",
+    "from": "Verfügbar ab",
+    "fromHint": "Optional — z. B. wenn Sie bis dahin verreist sind",
+    "contactLegend": "Adresse und Kontakt",
+    "address": "Adresse des Einsatzes",
+    "addressPlaceholder": "Straße und Ort",
+    "emailHint": "Optional — um die Bestätigung per E-Mail zu erhalten",
+    "sumService": "Leistung",
+    "sumEquipment": "Gerät",
+    "sumWhen": "Wann",
+    "sumFrom": "Ab",
+    "notes": "Anmerkungen",
+    "notesHint": "Optional — das Problem, Zugang zum Ort, Zeiten, die nicht passen…",
+    "notFinalBefore": "Dies ist eine",
+    "notFinalStrong": "Anfrage, kein fester Termin",
+    "notFinalAfter": ". Der Besuch ist erst bestätigt, wenn unser Büro Sie mit Tag und Uhrzeit kontaktiert.",
+    "errors": {
+      "service": "Wählen Sie die Art der Leistung.",
+      "equipment": "Geben Sie das Gerät an (z. B. Holz-Heizeinsatz).",
+      "date": "Das Datum darf nicht in der Vergangenheit liegen.",
+      "tooMany": "Wir haben Ihre Anfragen bereits erhalten — wir melden uns bald.",
+      "generic": "Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
+    },
+    "done": {
+      "title": "Anfrage gesendet — vielen Dank, {name}!",
+      "emailSentBefore": "Wir haben die Bestätigung an",
+      "emailSentAfter": " gesendet.",
+      "received": "Anfrage erhalten",
+      "receivedText": "Unser Team wurde benachrichtigt.",
+      "schedule": "Unser Büro plant den Besuch",
+      "scheduleText": "Wir wählen einen Termin nach Ihren Wünschen.",
+      "confirm": "Bestätigung",
+      "confirmText": "Wir kontaktieren Sie per {by} mit Tag und Uhrzeit.",
+      "myRequests": "Meine Anfragen ansehen",
+      "another": "Weitere Anfrage stellen",
+      "backToSite": "← Zurück zur Website"
+    }
   },
 
   receipt: {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Navbar from "./Navbar";
+import Navbar, { type NavSection } from "./Navbar";
 import AnimateIn from "./AnimateIn";
 import Footer from "./Footer";
 import ProductGrid, { Filters, type FilterRow } from "./ProductGrid";
@@ -14,10 +14,11 @@ interface Props {
   products: Product[];
   filters?: FilterRow[];
   quoteHref?: string;
+  section?: NavSection;
 }
 
 // Página de categoria ao estilo dos sites de referência: cabeçalho curto, filtros simples e grelha de modelos.
-export default async function CategoryLayout({ category, title, subtitle, heroImg, products, filters = [], quoteHref = "/pedir-orcamento" }: Props) {
+export default async function CategoryLayout({ category, title, subtitle, heroImg, products, filters = [], quoteHref = "/pedir-orcamento", section = "produtos" }: Props) {
   const { t, href } = await getI18n();
   return (
     <>
@@ -38,7 +39,7 @@ export default async function CategoryLayout({ category, title, subtitle, heroIm
             <p style={{ fontSize: "14.5px", lineHeight: 1.6, color: "rgba(255,255,255,0.65)", margin: 0 }}>{subtitle}</p>
           </div>
         </section>
-        <Navbar />
+        <Navbar current={section} />
       </div>
 
       <main style={{ background: "#1a1108" }}>

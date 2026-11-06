@@ -56,13 +56,13 @@ export default async function ApoioClientePage() {
               <Link href={href("/pedir-orcamento")} className="btn-primary" style={{ background: "#bf5b2d", color: "#fff", fontSize: "13.5px", fontWeight: 600, padding: "13px 22px", borderRadius: "999px", textDecoration: "none" }}>
                 {sp.ctaQuote}
               </Link>
-              <Link href="/conta/manutencao" className="btn-outline" style={{ color: "#fff", fontSize: "13.5px", fontWeight: 600, padding: "13px 22px", borderRadius: "999px", textDecoration: "none", border: "1.5px solid rgba(255,255,255,0.45)" }}>
+              <Link href={href("/pedir-servico")} className="btn-outline" style={{ color: "#fff", fontSize: "13.5px", fontWeight: 600, padding: "13px 22px", borderRadius: "999px", textDecoration: "none", border: "1.5px solid rgba(255,255,255,0.45)" }}>
                 {sp.ctaService}
               </Link>
             </div>
           </div>
         </section>
-        <Navbar />
+        <Navbar current="apoio" />
       </div>
 
       <main style={{ background: "#1a1108" }}>
@@ -130,7 +130,7 @@ export default async function ApoioClientePage() {
                   </div>
                 ))}
                 <Link
-                  href="/conta/manutencao"
+                  href={href("/pedir-servico")}
                   className="btn-primary"
                   style={{ background: "#bf5b2d", color: "#fff", fontSize: "14px", fontWeight: 600, padding: "14px 24px", borderRadius: "999px", textDecoration: "none", textAlign: "center", marginTop: "6px", display: "block" }}
                 >

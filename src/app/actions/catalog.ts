@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +9,7 @@ import { ENERGY_CLASSES, FUEL_KEYS, PRODUCT_BADGES, slugify } from "@/lib/catalo
 import { IMAGE_TYPES, removeCatalogFiles, uploadCatalogFile } from "@/lib/catalog-storage";
 import { LOCALES } from "@/lib/i18n/config";
 import { panel } from "@/lib/panel";
+import { checkSpace } from "@/lib/space";
 import type { FormState } from "./auth";
 
 // Catálogo no painel (separador "Catálogo"): marcas, categorias e produtos.
@@ -53,7 +55,11 @@ function slugFrom(fd: FormData, fallback: string) {
 }
 
 const DUPLICATE = "23505";
-const refresh = () => revalidatePath("/", "layout");
+// Depois de gravar ou apagar: atualiza o site e confirma o espaço ocupado (lib/space.ts).
+const refresh = () => {
+  revalidatePath("/", "layout");
+  after(checkSpace);
+};
 
 function dbError(error: { code?: string; message: string }, what: string): FormState {
   if (error.code === DUPLICATE) return { error: `Já existe ${what} com esse endereço (slug). Mude o nome ou o endereço.` };

@@ -60,7 +60,7 @@ export default async function SobrePage() {
             </p>
           </div>
         </section>
-        <Navbar />
+        <Navbar current="sobre" />
       </div>
 
       <main style={{ background: "#1a1108" }}>

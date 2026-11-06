@@ -38,7 +38,7 @@ export default async function Footer() {
     [f.clients]: [
       { label: t.common.requestQuote, href: href("/pedir-orcamento") },
       { label: t.nav.support, href: href("/apoio-ao-cliente") },
-      { label: f.requestService, href: "/conta/manutencao" },
+      { label: f.requestService, href: href("/pedir-servico") },
       { label: t.common.clientArea, href: "/conta" },
     ],
   };
