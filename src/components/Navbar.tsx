@@ -4,16 +4,20 @@ import { MAIN_FUELS } from "@/lib/catalog";
 import { getCatalog } from "@/lib/catalog-data";
 import { getI18n } from "@/lib/i18n/server";
 
+export type NavSection = "produtos" | "sobre" | "obras" | "apoio" | "outlet";
+
 // Menu como nos sites de referência: produtos por tipo e por combustível.
 // No telemóvel, o menu abre num painel (<details>, sem JavaScript).
-export default async function Navbar() {
+// current: a secção onde o visitante está fica destacada (na página inicial, nenhuma).
+export default async function Navbar({ current }: { current?: NavSection }) {
   const { locale, t, href } = await getI18n();
   const catalog = await getCatalog(locale);
-  const navLinks = [
-    { label: t.nav.about, href: "/sobre" },
-    { label: t.nav.works, href: "/obras" },
-    { label: t.nav.support, href: "/apoio-ao-cliente" },
+  const navLinks: { label: string; href: string; section: NavSection }[] = [
+    { label: t.nav.about, href: "/sobre", section: "sobre" },
+    { label: t.nav.works, href: "/obras", section: "obras" },
+    { label: t.nav.support, href: "/apoio-ao-cliente", section: "apoio" },
   ];
+  const here = (section: NavSection) => (current === section ? ("page" as const) : undefined);
   const fuelLinks = MAIN_FUELS.map((f) => ({ label: t.catalog.fuels[f], href: href(`/produtos?combustivel=${f}`) }));
   const categories = catalog.categories.map((c) => ({ slug: c.slug, label: c.name, href: href(c.href) }));
 
@@ -25,7 +29,7 @@ export default async function Navbar() {
 
       <div className="site-nav-links">
         <div className="nav-dropdown">
-          <Link href={href("/produtos")} className="nav-link-hero" aria-haspopup="true">
+          <Link href={href("/produtos")} className="nav-link-hero" aria-haspopup="true" aria-current={here("produtos")}>
             {t.nav.products} <span aria-hidden style={{ fontSize: "10px", marginLeft: "2px" }}>▾</span>
           </Link>
           <div className="nav-menu nav-menu-cols">
@@ -44,11 +48,11 @@ export default async function Navbar() {
           </div>
         </div>
         {navLinks.map((link) => (
-          <Link key={link.href} href={href(link.href)} className="nav-link-hero">
+          <Link key={link.href} href={href(link.href)} className="nav-link-hero" aria-current={here(link.section)}>
             {link.label}
           </Link>
         ))}
-        <Link href={href("/outlet")} className="nav-link-hero-outlet">
+        <Link href={href("/outlet")} className="nav-link-hero" aria-current={here("outlet")}>
           {t.nav.outlet}
         </Link>
       </div>
@@ -82,9 +86,9 @@ export default async function Navbar() {
             </div>
             <span className="nav-menu-head">Pachinha</span>
             {navLinks.map((link) => (
-              <Link key={link.href} href={href(link.href)}>{link.label}</Link>
+              <Link key={link.href} href={href(link.href)} aria-current={here(link.section)}>{link.label}</Link>
             ))}
-            <Link href={href("/outlet")} style={{ color: "#e2a276" }}>{t.nav.outlet}</Link>
+            <Link href={href("/outlet")} aria-current={here("outlet")}>{t.nav.outlet}</Link>
             <Link href="/conta">{t.common.clientArea}</Link>
             <Link href={href("/pedir-orcamento")} className="btn-primary mobile-menu-cta">{t.common.requestQuote}</Link>
           </div>

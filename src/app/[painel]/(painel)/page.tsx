@@ -6,6 +6,7 @@ import { MAINTENANCE_SERVICE, QUOTE_STATUS, TZ, formatDate, formatTime, lisbonDa
 import { googleMapsSearchUrl, googleMapsUrl, wazeSearchUrl, wazeUrl } from "@/lib/geo";
 import { panel } from "@/lib/panel";
 import Attention from "@/components/admin/Attention";
+import { BUCKET_LABEL, formatBytes, getSpace, type Space } from "@/lib/space";
 
 type Item = {
   id: string;
@@ -64,7 +65,7 @@ export default async function AdminHome() {
     supabase.from(table).select("id", { count: "exact", head: true }).eq(column, value);
   const none = Promise.resolve({ data: null, count: 0 });
 
-  const [newQuotes, pendingMaint, unscheduledJobs, maint, jobs, visits, quoteStats, recent, products, brands, categories] = await Promise.all([
+  const [newQuotes, pendingMaint, unscheduledJobs, maint, jobs, visits, quoteStats, recent, products, brands, categories, space] = await Promise.all([
     isAdmin ? count("quote_requests", "status", "novo") : none,
     count("maintenance_requests", "status", "pendente"),
     count("jobs", "status", "por_agendar"),
@@ -98,6 +99,8 @@ export default async function AdminHome() {
     isAdmin ? supabase.from("catalog_products").select("active, photos").returns<{ active: boolean; photos: string[] }[]>() : none,
     isAdmin ? supabase.from("catalog_brands").select("active, logo_url, in_ticker").returns<{ active: boolean; logo_url: string; in_ticker: boolean }[]>() : none,
     isAdmin ? supabase.from("catalog_categories").select("active, image_url").returns<{ active: boolean; image_url: string }[]>() : none,
+    // Espaço ocupado no plano gratuito (lib/space.ts).
+    isAdmin ? getSpace() : null,
   ]);
 
   const items: Item[] = [
@@ -196,7 +199,7 @@ export default async function AdminHome() {
         <div className="dash-col">
           <Attention isAdmin={isAdmin} />
           {isAdmin && <RecentQuotes quotes={recent.data ?? []} />}
-          {isAdmin && <SiteHealth products={products.data ?? []} brands={brands.data ?? []} categories={categories.data ?? []} />}
+          {isAdmin && <SiteHealth products={products.data ?? []} brands={brands.data ?? []} categories={categories.data ?? []} space={space} />}
         </div>
       </div>
 
@@ -277,10 +280,12 @@ function SiteHealth({
   products,
   brands,
   categories,
+  space,
 }: {
   products: { active: boolean; photos: string[] }[];
   brands: { active: boolean; logo_url: string; in_ticker: boolean }[];
   categories: { active: boolean; image_url: string }[];
+  space: Space | null;
 }) {
   const visible = products.filter((p) => p.active).length;
   const checks = [
@@ -312,7 +317,35 @@ function SiteHealth({
       ) : (
         <p className="muted" style={{ margin: "12px 0 0" }}>✓ Tudo o que está no site tem fotografia, logótipo e imagem.</p>
       )}
+      {space && <SpaceMeter space={space} />}
     </section>
+  );
+}
+
+// Espaço gratuito: barra verde até 80%, laranja até 90%, vermelha acima (há aviso no Telegram).
+function SpaceMeter({ space }: { space: Space }) {
+  const rows = [
+    { label: "Fotografias e imagens", ...space.storage, detail: space.buckets.map((b) => `${BUCKET_LABEL[b.bucket] ?? b.bucket}: ${formatBytes(b.bytes)} (${b.files})`).join(" · ") },
+    { label: "Dados", ...space.database, detail: "Pedidos, clientes, obras e catálogo" },
+  ];
+  return (
+    <>
+      <h3 className="dash-h3" style={{ marginTop: 18 }}>Espaço gratuito</h3>
+      <ul className="dash-space">
+        {rows.map((r) => (
+          <li key={r.label} title={r.detail}>
+            <div className="dash-space-head">
+              <span>{r.label}</span>
+              <strong>{formatBytes(r.bytes)} <small>de {formatBytes(r.limit)} · {r.pct}%</small></strong>
+            </div>
+            <span className={`dash-bar${r.pct >= 90 ? " dash-bar-danger" : r.pct >= 80 ? " dash-bar-warn" : ""}`}>
+              <span style={{ width: `${Math.min(100, Math.max(1, r.pct))}%` }} />
+            </span>
+            {r.detail && <small className="muted">{r.detail}</small>}
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

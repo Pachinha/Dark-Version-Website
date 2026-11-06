@@ -32,7 +32,7 @@ export default async function AdminMaintenanceDetail({ params }: { params: Promi
   if (!m) notFound();
 
   // Registo de um cliente sem conta (criado pela administração): contactos e morada no próprio registo.
-  const client = m.client ?? (m.name ? { id: "", full_name: m.name, email: m.email, phone: m.phone } : null);
+  const client = m.client ? { ...m.client, id: m.customer_id ?? m.client.id } : m.name ? { id: m.customer_id ?? "", full_name: m.name, email: m.email, phone: m.phone } : null;
   const address = m.addresses ?? (m.address ? { label: "Morada", address: m.address, details: m.address_details, lat: m.lat, lng: m.lng } : null);
 
   const { data: staff } = isAdmin
@@ -121,7 +121,7 @@ export default async function AdminMaintenanceDetail({ params }: { params: Promi
           </ConfirmedForm>
         </section>
 
-        <ClientCard client={client} address={address} linkToClient={isAdmin && Boolean(m.client)}>
+        <ClientCard client={client} address={address} linkToClient={isAdmin && Boolean(m.customer_id || m.client)}>
           {isAdmin && <LocationRequest entity="maintenance_requests" id={m.id} hasLocation={Boolean(address)} />}
         </ClientCard>
       </div>

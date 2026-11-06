@@ -12,6 +12,7 @@ import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { makeLocationNotice } from "@/lib/location-request";
 import type { EditResult } from "./admin";
 import { isValidPhone } from "@/lib/phone";
+import { customerPlaces } from "@/lib/customers";
 
 // A administração regista tudo sozinha no painel: pedidos de orçamento, visitas técnicas,
 // limpezas/manutenções e obras — para clientes com conta ou para quem aparece na loja / liga.
@@ -29,6 +30,17 @@ export async function clientAddresses(userId: string): Promise<ClientAddress[]> 
   return (data ?? []) as ClientAddress[];
 }
 
+export type PastPlace = { address: string; details: string; lat: number; lng: number };
+
+// Moradas dos pedidos anteriores de um cliente sem conta (só as que têm coordenadas).
+export async function customerPastPlaces(customerId: string): Promise<PastPlace[]> {
+  await requireAdmin();
+  if (!UUID.test(customerId)) return [];
+  return (await customerPlaces(customerId)).filter((p): p is PastPlace => p.lat != null && p.lng != null);
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 type Place = { address: string; details: string; postcode: string; lat: number | null; lng: number | null };
 
 export async function createEntry(formData: FormData): Promise<EditResult> {
@@ -39,6 +51,13 @@ export async function createEntry(formData: FormData): Promise<EditResult> {
   // ── Cliente ──
   const supabase = await createClient();
   const userId = text(formData, "user_id") || null;
+  // Ficha escolhida na pesquisa (cliente já registado, com ou sem conta).
+  let customerId = text(formData, "customer_id") || null;
+  if (customerId) {
+    const { data: c } = UUID.test(customerId) ? await supabase.from("customers").select("id").eq("id", customerId).maybeSingle() : { data: null };
+    if (!c) return { error: "Ficha de cliente não encontrada." };
+    customerId = c.id;
+  }
   let contact = { name: text(formData, "name"), email: text(formData, "email").toLowerCase(), phone: text(formData, "phone") };
   if (userId) {
     const { data: p } = await supabase.from("profiles").select("full_name, email, phone").eq("id", userId).eq("role", "client").maybeSingle();
@@ -100,6 +119,7 @@ export async function createEntry(formData: FormData): Promise<EditResult> {
       .from("quote_requests")
       .insert({
         user_id: userId,
+        customer_id: customerId,
         category,
         message: text(formData, "message").slice(0, 2000),
         name: contact.name,
@@ -145,6 +165,7 @@ export async function createEntry(formData: FormData): Promise<EditResult> {
       .from("maintenance_requests")
       .insert({
         user_id: userId,
+        customer_id: customerId,
         address_id: addressId,
         service,
         equipment: equipment.slice(0, 200),
@@ -185,6 +206,7 @@ export async function createEntry(formData: FormData): Promise<EditResult> {
     .from("jobs")
     .insert({
       user_id: userId,
+      customer_id: customerId,
       address_id: addressId,
       title: title.slice(0, 200),
       description: text(formData, "description").slice(0, 4000),

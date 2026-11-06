@@ -263,13 +263,33 @@ saiba exatamente o quê, como se nota e o que fazer.
 
 - O que inclui: 8 GB de base de dados, 100 GB de ficheiros, sem pausas e cópias diárias com 7 dias
   de retenção.
-- **Quando se justifica:** se a base de dados passar ~400 MB, se os ficheiros passarem ~800 MB, ou se
-  a empresa quiser ter suporte e cópias geridas pelo próprio Supabase.
+- **Objetivo (decisão de 2026-11-06): nunca precisar dele.** O código está preparado para ficar no
+  plano gratuito durante anos — ver "Plano para nunca pagar" abaixo. O Pro fica só como opção da
+  empresa (ex.: se quiser cópias geridas pelo próprio Supabase).
 
-**Como vigiar:**
+**Números reais (2026-11-06):** 13 MB de dados e 38 KB de fotos.
 
-- Dashboard → projeto → **Reports / Usage** mostra o espaço usado.
-- O Supabase também manda email ao dono da conta quando se aproxima de um limite.
+- **Dados (texto):** ~5 KB por pedido com ficha, notas e orçamento → 500 MB ≈ 100 000 pedidos. Nunca é
+  problema.
+- **Fotos:** é o único limite que conta. Sem medidas, ~4–5 MB por pedido com fotos encheria 1 GB em
+  ~220 pedidos.
+
+**Plano para nunca pagar (3 camadas):**
+
+1. **Fotos comprimidas antes de enviar** — feito. `src/lib/shrink-image.ts`: no browser, 1600 px em
+   JPEG (~300 KB cada). Num ecrã ficam iguais às originais. 1 GB ≈ 1000+ pedidos com fotos.
+2. **Medidor e avisos** — feito (migração 018, `src/lib/space.ts`).
+   - Painel → Início → cartão "Site" → **Espaço gratuito** (barra verde, laranja a 80%, vermelha a 90%).
+   - Aviso automático à administração (Telegram + email) ao passar 80, 90 e 95% — uma vez por nível.
+     É verificado sempre que entra um pedido ou se mexe no catálogo.
+   - Se os limites do plano mudarem: `SPACE_DATABASE_LIMIT_MB` / `SPACE_STORAGE_LIMIT_MB` (secção 8).
+3. **Arquivo das fotos antigas no R2** — **por fazer** (com a ativação do R2, secção 14).
+   - Fotos de pedidos fechados há mais de 1 ano passam sozinhas do Supabase para o R2 (10 GB grátis).
+   - Continuam a ver-se na ficha do cliente; só vêm de outro sítio.
+   - Total ~11 GB grátis ≈ mais de 20 000 pedidos com fotos.
+
+**Como vigiar:** o medidor do painel e os avisos acima. Também: Supabase → projeto → **Reports /
+Usage**, e o email que o Supabase manda ao dono da conta perto de um limite.
 
 **Para não crescer sem controlo (já implementado):**
 
@@ -286,9 +306,8 @@ saiba exatamente o quê, como se nota e o que fazer.
    select relname, pg_size_pretty(pg_total_relation_size(relid))
    from pg_catalog.pg_statio_user_tables order by pg_total_relation_size(relid) desc;
    ```
-2. Fotos de pedidos antigos e concluídos são o candidato natural a limpeza. Combinar uma regra com
-   a Sandra (ex.: apagar fotos de pedidos fechados há mais de 2 anos) antes de apagar o que quer
-   que seja.
+2. Fotos de pedidos antigos e concluídos: **arquivar no R2** (camada 3), não apagar. Nunca apagar
+   fotos sem combinar uma regra com a Sandra.
 
 **Sair do Supabase (se um dia for preciso):**
 
@@ -330,7 +349,8 @@ saiba exatamente o quê, como se nota e o que fazer.
 | Sinal | Ação | Custo |
 |---|---|---|
 | Deploy falha por tamanho, erros 1027/1102 | Cloudflare Workers Paid | 5 $/mês |
-| BD > 400 MB ou ficheiros > 800 MB, ou a empresa quer cópias geridas | Supabase Pro | 25 $/mês |
+| Aviso de espaço a 80% | Arquivar fotos no R2 (secção 4.2) — **não** passar a Pro | 0 € |
+| Só se a empresa quiser cópias geridas pelo Supabase | Supabase Pro (opcional) | 25 $/mês |
 | Mais de 100 emails/dia | Resend Pro | 20 $/mês |
 | Mais de 10 GB de cópias | R2 pago | cêntimos |
 
@@ -462,6 +482,7 @@ Os **nomes** estão aqui; os **valores** nunca. O modelo comentado é o `.env.ex
 | `ADMIN_EMAIL`, `STAFF_EMAIL` | Recomendada | Cópia dos avisos por email | — |
 | `NEXT_PUBLIC_GA_ID` | Opcional | Google Analytics (só carrega com consentimento) | GA → Admin |
 | `NEXT_PUBLIC_COMPANY_WHATSAPP` | Opcional | Botão de WhatsApp no comprovativo | ex.: `351…` |
+| `SPACE_DATABASE_LIMIT_MB`, `SPACE_STORAGE_LIMIT_MB` | Opcional | Limites do medidor de espaço (padrão 500 e 1024, plano gratuito) | Só mudar se o plano do Supabase mudar |
 | `SUPABASE_ACCESS_TOKEN` | Só local | Scripts de manutenção (Management API) | Supabase → Account → Access Tokens |
 
 **Na Cloudflare:**
@@ -560,6 +581,7 @@ produção até à 017):
 | `015` | Catálogo sem PDFs, só imagens |
 | `016_fichas_clientes.sql` | Ficha de cliente automática (com ou sem conta), possíveis repetidos, juntar fichas |
 | `017_manutencao_sem_conta.sql` | Pedir limpeza/manutenção no site sem conta |
+| `018_espaco.sql` | Medidor de espaço (`space_usage()`, só servidor) e níveis de aviso já enviados (`space_alerts`) |
 
 **Tabelas:**
 
@@ -864,6 +886,8 @@ wrangler.jsonc, open-next.config.ts   configuração Cloudflare
    - o subdomínio de teste `novo.pachinha.com`.
 4. [ ] Testes completos no endereço de teste, em telemóvel, tablet e computador.
 5. [ ] Configurar o SMTP do Supabase Auth com o Resend.
+5b. [ ] **Espaço gratuito** (secção 4.2): confirmar a migração 018 no Supabase de produção, as
+   variáveis do Telegram na Cloudflare e **construir o arquivo das fotos antigas no R2** (camada 3).
 6. [~] Cópias de segurança: workflow feito e palavra-passe da BD no GitHub → faltam `SUPABASE_SECRET_KEY`, `BACKUP_PASSPHRASE` e a R2 →
    **testar uma reposição**.
 7. [ ] Publicação automática a partir do GitHub.

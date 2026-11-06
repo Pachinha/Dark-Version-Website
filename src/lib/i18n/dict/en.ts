@@ -241,11 +241,11 @@ export const en: Dict = {
       { title: "Tell us your preferences", desc: "The weekdays and times (morning or afternoon) that suit you best." },
       { title: "We book and confirm", desc: "Our office fits the visit into the technicians' schedule and contacts you with the day and time." },
     ],
-    needsAccount: "You need a client account — it takes less than a minute to create.",
+    needsAccount: "No account needed — it takes about a minute.",
     faqTitle: "Frequently asked questions",
     faqs: [
       { q: "Can I choose the day and time of the visit?", a: "Tell us the days and times that suit you best. Our office books the visit within those preferences, according to the technicians' schedule, and confirms with you." },
-      { q: "Do I need an account to make a request?", a: "Yes. Your account keeps your address and the history of your appliances, and lets you follow the status of each request. It takes less than a minute." },
+      { q: "Do I need an account to make a request?", a: "No. You can make a request without an account. If you like, you can create one to save your addresses and follow your requests." },
       { q: "How quickly do you reply?", a: "We reply within 24 working hours of your request. If your appliance has stopped working, mark the request as urgent." },
       { q: "Does the quote cost anything?", a: "No. Requesting a quote is free and with no obligation." },
     ],
@@ -321,6 +321,34 @@ export const en: Dict = {
     anyDayIn: "Any day, in the {period}",
     allDay: "{day} (all day)",
     dayIn: "{day} {period}",
+    service: {
+      "manutencao": {
+        "label": "Annual maintenance",
+        "desc": "Full service, seals, draught and adjustment."
+      },
+      "limpeza": {
+        "label": "Chimney sweeping",
+        "desc": "Cleaning of the chimney and flues, with certificate."
+      },
+      "assistencia": {
+        "label": "Technical assistance",
+        "desc": "Diagnosis and repair of faults."
+      }
+    },
+    urgency: {
+      "flexivel": {
+        "label": "No rush",
+        "hint": "In the coming weeks"
+      },
+      "normal": {
+        "label": "Soon",
+        "hint": "In the coming days"
+      },
+      "urgente": {
+        "label": "Urgent",
+        "hint": "Appliance not working or faulty"
+      }
+    },
   },
 
   availability: {
@@ -493,6 +521,63 @@ export const en: Dict = {
       createAccount: "Create account →",
       backToSite: "← Back to the site",
     },
+  },
+
+  service: {
+    "meta": "Request a service",
+    "metaDescription": "Request maintenance, chimney sweeping or technical assistance in a minute — no account needed.",
+    "eyebrow": "Customer support",
+    "title": "Request maintenance or assistance",
+    "lead": "Tell us what you need and when suits you best. Our office books the visit within your preferences and contacts you to confirm.",
+    "noAccount": "You don't need an account to make a request.",
+    "steps": [
+      "Service",
+      "Appliance",
+      "Address & contact",
+      "Confirm"
+    ],
+    "whatLegend": "What do you need?",
+    "equipmentLegend": "About the appliance",
+    "equipment": "Appliance",
+    "equipmentHint": "E.g. wood-burning insert, pellet stove — make and model if you know",
+    "urgency": "When do you need the service?",
+    "whenInfo": "You don't need to pick an exact time: tell us your preferences and our office books the visit around the technicians' schedule.",
+    "from": "Available from",
+    "fromHint": "Optional — e.g. if you are away until then",
+    "contactLegend": "Address & contact",
+    "address": "Service address",
+    "addressPlaceholder": "Street and town",
+    "emailHint": "Optional — to receive the confirmation by email",
+    "sumService": "Service",
+    "sumEquipment": "Appliance",
+    "sumWhen": "When",
+    "sumFrom": "From",
+    "notes": "Notes",
+    "notesHint": "Optional — the problem, access to the property, times to avoid…",
+    "notFinalBefore": "This is a",
+    "notFinalStrong": "request, not a booking",
+    "notFinalAfter": ". The visit is only confirmed once our office contacts you with the day and time.",
+    "errors": {
+      "service": "Choose the type of service.",
+      "equipment": "Tell us the appliance (e.g. wood-burning insert).",
+      "date": "The date cannot be in the past.",
+      "tooMany": "We have already received your requests — we will be in touch soon.",
+      "generic": "We could not send your request. Please try again."
+    },
+    "done": {
+      "title": "Request sent — thank you, {name}!",
+      "emailSentBefore": "We have sent the confirmation to",
+      "emailSentAfter": ".",
+      "received": "Request received",
+      "receivedText": "Our team has been notified.",
+      "schedule": "Our office books the visit",
+      "scheduleText": "We pick a date within your preferences.",
+      "confirm": "Confirmation",
+      "confirmText": "We contact you by {by} with the day and time.",
+      "myRequests": "See my requests",
+      "another": "Make another request",
+      "backToSite": "← Back to the site"
+    }
   },
 
   receipt: {

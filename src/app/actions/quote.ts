@@ -20,6 +20,7 @@ import { panel } from "@/lib/panel";
 import { PHOTO_BUCKET } from "@/lib/quote-photos";
 import { FREE_VISIT_MUNICIPALITIES, OTHER_MUNICIPALITY, isInFreeArea } from "@/lib/service-area";
 import { alertStaff } from "@/lib/staff-alert";
+import { checkSpace } from "@/lib/space";
 import { sendQuoteConfirmation } from "@/lib/quote-emails";
 import { isValidPhone } from "@/lib/phone";
 import { LOCALE_NAMES, fmt } from "@/lib/i18n/config";
@@ -157,6 +158,7 @@ export async function submitQuote(_: QuoteState, formData: FormData): Promise<Qu
   // Depois de responder ao cliente (não o faz esperar): email de confirmação + aviso à equipa.
   after(async () => {
     await Promise.all([
+      checkSpace(),
       sendQuoteConfirmation({
         id,
         ref: saved.ref,

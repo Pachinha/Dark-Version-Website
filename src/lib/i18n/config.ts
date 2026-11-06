@@ -27,7 +27,7 @@ export const isLocale = (value: unknown): value is Locale => LOCALES.includes(va
 // Páginas traduzidas (o próprio caminho e tudo o que estiver por baixo).
 const LOCALIZED = [
   "/sobre", "/obras", "/produtos", "/produto", "/lareiras", "/recuperadores", "/salamandras", "/fogoes", "/churrasqueiras",
-  "/outlet", "/apoio-ao-cliente", "/pedir-orcamento", "/pedido", "/privacidade", "/termos", "/cookies", "/manutencao",
+  "/outlet", "/apoio-ao-cliente", "/pedir-orcamento", "/pedir-servico", "/pedido", "/privacidade", "/termos", "/cookies", "/manutencao",
 ];
 
 export function isLocalizedPath(path: string) {

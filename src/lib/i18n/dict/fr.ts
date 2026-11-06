@@ -241,11 +241,11 @@ export const fr: Dict = {
       { title: "Indiquez vos préférences", desc: "Les jours de la semaine et les créneaux (matin ou après-midi) qui vous conviennent." },
       { title: "Nous fixons et confirmons", desc: "Le secrétariat intègre la visite au planning des techniciens et vous contacte avec le jour et l'heure." },
     ],
-    needsAccount: "Un compte client est nécessaire — il se crée en moins d'une minute.",
+    needsAccount: "Aucun compte nécessaire — cela prend environ une minute.",
     faqTitle: "Questions fréquentes",
     faqs: [
       { q: "Puis-je choisir le jour et l'heure de la visite ?", a: "Indiquez-nous les jours et les créneaux qui vous conviennent. Notre secrétariat fixe la visite dans ces préférences, selon le planning des techniciens, et la confirme avec vous." },
-      { q: "Dois-je créer un compte pour faire une demande ?", a: "Oui. Le compte garde votre adresse et l'historique de vos appareils, et permet de suivre l'état de chaque demande. Cela prend moins d'une minute." },
+      { q: "Dois-je créer un compte pour faire une demande ?", a: "Non. Vous pouvez faire la demande sans compte. Si vous le souhaitez, vous pouvez en créer un pour enregistrer vos adresses et suivre vos demandes." },
       { q: "Combien de temps pour obtenir une réponse ?", a: "Nous répondons dans les 24 heures ouvrées qui suivent la demande. Si l'appareil est à l'arrêt, indiquez que la demande est urgente." },
       { q: "Le devis est-il payant ?", a: "Non. La demande de devis est gratuite et sans engagement." },
     ],
@@ -321,6 +321,34 @@ export const fr: Dict = {
     anyDayIn: "N'importe quel jour ({period})",
     allDay: "{day} (toute la journée)",
     dayIn: "{day} {period}",
+    service: {
+      "manutencao": {
+        "label": "Entretien annuel",
+        "desc": "Révision complète, joints, tirage et réglage."
+      },
+      "limpeza": {
+        "label": "Ramonage",
+        "desc": "Nettoyage de la cheminée et des conduits, avec certificat."
+      },
+      "assistencia": {
+        "label": "Assistance technique",
+        "desc": "Diagnostic et réparation des pannes."
+      }
+    },
+    urgency: {
+      "flexivel": {
+        "label": "Pas pressé",
+        "hint": "Dans les prochaines semaines"
+      },
+      "normal": {
+        "label": "Bientôt",
+        "hint": "Dans les prochains jours"
+      },
+      "urgente": {
+        "label": "Urgent",
+        "hint": "Appareil à l'arrêt ou en panne"
+      }
+    },
   },
 
   availability: {
@@ -493,6 +521,63 @@ export const fr: Dict = {
       createAccount: "Créer un compte →",
       backToSite: "← Retour au site",
     },
+  },
+
+  service: {
+    "meta": "Demander une intervention",
+    "metaDescription": "Demandez un entretien, un ramonage ou une assistance technique en une minute, sans compte.",
+    "eyebrow": "Service client",
+    "title": "Demander un entretien ou une assistance",
+    "lead": "Dites-nous ce dont vous avez besoin et quand cela vous arrange. Notre secrétariat fixe la visite selon vos préférences et vous contacte pour la confirmer.",
+    "noAccount": "Aucun compte n'est nécessaire pour faire la demande.",
+    "steps": [
+      "Service",
+      "Appareil",
+      "Adresse et contact",
+      "Confirmer"
+    ],
+    "whatLegend": "De quoi avez-vous besoin ?",
+    "equipmentLegend": "À propos de l'appareil",
+    "equipment": "Appareil",
+    "equipmentHint": "Ex. : insert à bois, poêle à granulés — marque et modèle si vous les connaissez",
+    "urgency": "Quand avez-vous besoin de l'intervention ?",
+    "whenInfo": "Pas besoin de choisir une heure précise : indiquez vos préférences et notre secrétariat fixe la visite selon le planning des techniciens.",
+    "from": "Disponible à partir du",
+    "fromHint": "Facultatif — ex. : si vous êtes absent jusque-là",
+    "contactLegend": "Adresse et contact",
+    "address": "Adresse de l'intervention",
+    "addressPlaceholder": "Rue et localité",
+    "emailHint": "Facultatif — pour recevoir la confirmation par email",
+    "sumService": "Service",
+    "sumEquipment": "Appareil",
+    "sumWhen": "Quand",
+    "sumFrom": "À partir du",
+    "notes": "Remarques",
+    "notesHint": "Facultatif — le problème, l'accès au lieu, les horaires à éviter…",
+    "notFinalBefore": "Ceci est une",
+    "notFinalStrong": "demande, pas un rendez-vous",
+    "notFinalAfter": ". La visite n'est confirmée que lorsque notre secrétariat vous contacte avec le jour et l'heure.",
+    "errors": {
+      "service": "Choisissez le type de service.",
+      "equipment": "Indiquez l'appareil (ex. : insert à bois).",
+      "date": "La date ne peut pas être dans le passé.",
+      "tooMany": "Nous avons déjà reçu vos demandes — nous vous contacterons bientôt.",
+      "generic": "La demande n'a pas pu être envoyée. Veuillez réessayer."
+    },
+    "done": {
+      "title": "Demande envoyée — merci, {name} !",
+      "emailSentBefore": "Nous avons envoyé la confirmation à",
+      "emailSentAfter": ".",
+      "received": "Demande reçue",
+      "receivedText": "Notre équipe a été prévenue.",
+      "schedule": "Notre secrétariat fixe la visite",
+      "scheduleText": "Nous choisissons une date selon vos préférences.",
+      "confirm": "Confirmation",
+      "confirmText": "Nous vous contactons par {by} avec le jour et l'heure.",
+      "myRequests": "Voir mes demandes",
+      "another": "Faire une autre demande",
+      "backToSite": "← Retour au site"
+    }
   },
 
   receipt: {

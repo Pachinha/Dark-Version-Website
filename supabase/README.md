@@ -19,7 +19,11 @@
    `supabase/013_pedido_localizacao.sql` (link para o cliente partilhar a localização),
    `supabase/014_catalogo.sql` (marcas, categorias e produtos geridos no painel),
    `supabase/014_catalogo_dados.sql` (catálogo inicial — só numa base vazia) e
-   `supabase/015_sem_catalogos_pdf.sql` (retira os catálogos em PDF: só produtos).
+   `supabase/015_sem_catalogos_pdf.sql` (retira os catálogos em PDF: só produtos),
+   `supabase/016_fichas_clientes.sql` (ficha de cliente automática, com ou sem conta: junta os pedidos
+   pelo telefone/email, possíveis repetidos e juntar fichas no painel) e
+   `supabase/017_manutencao_sem_conta.sql` (pedir limpeza/manutenção no site sem conta) e
+   `supabase/018_espaco.sql` (medidor de espaço no painel e avisos antes de encher o plano gratuito).
 3. **Chaves:** Project Settings → API Keys. Copie `.env.example` para `.env.local` e preencha
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SECRET_KEY`.
    Coloque as mesmas variáveis no alojamento (ex.: Vercel → Settings → Environment Variables).
@@ -48,3 +52,16 @@
 - Preencher os campos `[ ]` em `src/lib/legal.ts`, `/privacidade` e `/termos`.
 - Rever os textos legais com um jurista (são rascunhos).
 - Assinar o DPA (acordo de subcontratação) do Supabase e do alojamento — normalmente é um clique no painel.
+
+## Espaço (plano gratuito, sem pagar nunca)
+Limites do plano gratuito do Supabase: **500 MB de dados** e **1 GB de ficheiros** (fotos).
+Os dados (texto) não são problema: ~5 KB por pedido, dá para décadas. O que cresce são as fotos.
+
+1. **Fotos comprimidas antes de enviar** (`src/lib/shrink-image.ts`): no browser do cliente, 1600 px
+   em JPEG (~300 KB cada). Igual às originais num ecrã; o pedido envia mais depressa.
+2. **Medidor no painel** (página inicial → "Site" → "Espaço gratuito") e **aviso automático**
+   à administração (Telegram + email) aos 80, 90 e 95% — `src/lib/space.ts`, migração 018.
+   Se o plano mudar, ajustar `SPACE_DATABASE_LIMIT_MB` / `SPACE_STORAGE_LIMIT_MB` (em MB) no alojamento.
+3. **A fazer com a Cloudflare (R2, 10 GB grátis):** arquivo automático das fotos de pedidos fechados
+   há mais de 1 ano para o R2. Continuam a ver-se na ficha do cliente (vêm de outro sítio).
+   Total ~11 GB grátis — mais de 20.000 pedidos com fotos.

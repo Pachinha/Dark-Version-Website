@@ -10,6 +10,7 @@ export default async function OutletPage() {
   const products = (await getCatalog(locale)).products.filter((p) => p.outlet);
   return (
     <CategoryLayout
+      section="outlet"
       category={t.nav.outlet}
       title={t.category.outletTitle}
       subtitle={t.category.outletSubtitle}

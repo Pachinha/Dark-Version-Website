@@ -2,37 +2,28 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { MAINTENANCE_SERVICE, MAINTENANCE_STATUS, URGENCY, describeAvailability, formatDate } from "@/lib/labels";
-import MaintenanceForm from "./MaintenanceForm";
 
 export default async function ManutencaoContaPage() {
-  const { user, profile } = await requireUser();
+  const { user } = await requireUser();
   const supabase = await createClient();
-
-  const [{ data: addresses }, { data: requests }] = await Promise.all([
-    supabase.from("addresses").select("id, label, address, details").eq("user_id", user.id).order("created_at"),
-    supabase
-      .from("maintenance_requests")
-      .select("*, addresses(label, address)")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false }),
-  ]);
+  // Pedidos feitos sem conta, com o mesmo email (já confirmado), passam para esta conta.
+  await supabase.rpc("claim_guest_quotes");
+  const { data: requests } = await supabase
+    .from("maintenance_requests")
+    .select("*, addresses(label, address)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
 
   return (
     <>
       <section className="panel">
         <span className="eyebrow">Novo pedido</span>
         <h2>Pedir manutenção ou limpeza</h2>
-        {addresses?.length ? (
-          <MaintenanceForm addresses={addresses} needsPhone={!profile.phone} />
-        ) : (
-          <>
-            <p className="muted">
-              Para o técnico chegar a sua casa, precisamos primeiro de uma morada. Pode partilhar a sua
-              localização ou pesquisar a morada.
-            </p>
-            <Link href="/conta/moradas" className="btn btn-fire">Adicionar morada</Link>
-          </>
-        )}
+        <p className="muted">
+          Escolha o serviço, o equipamento e quando lhe dá mais jeito. Os seus contactos e moradas guardadas já
+          vêm preenchidos.
+        </p>
+        <Link href="/pedir-servico" className="btn btn-fire">Fazer um pedido</Link>
       </section>
       <section className="panel">
         <h2>Os meus pedidos</h2>
@@ -46,7 +37,7 @@ export default async function ManutencaoContaPage() {
                 </div>
                 <div>{m.equipment}</div>
                 <div className="muted">
-                  {m.addresses ? `${m.addresses.label} — ${m.addresses.address}` : "Morada removida"}
+                  {m.addresses ? `${m.addresses.label} — ${m.addresses.address}` : m.address || "Morada removida"}
                 </div>
                 {m.scheduled_for ? (
                   <div><strong>Visita marcada para {formatDate(m.scheduled_for, true)}</strong></div>
